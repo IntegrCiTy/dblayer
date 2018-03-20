@@ -1,0 +1,48 @@
+{
+  "nodes": {
+    "A": {
+      "inputs": ["seta"],
+      "outputs": ["ta"]
+    },
+    "B": {
+      "inputs": [],
+      "outputs": ["tb"]
+    },
+    "C": {
+      "inputs": ["t1", "t2"],
+      "outputs": ["setc"]
+    }
+  },
+  "links": {
+    "l1": {
+      "out": {
+        "node":"A",
+        "attr": "ta"
+      },
+      "in": {
+        "node":"C",
+        "attr": "t1"
+      }
+    },
+    "l2": {
+      "out": {
+        "node": "B",
+        "attr": "tb"
+      },
+      "in": {
+        "node": "C",
+        "attr": "t2"
+      }
+    },
+    "l3": {
+      "out": {
+        "node":"C",
+        "attr": "setc"
+      },
+      "in": {
+        "node":"A",
+        "attr": "seta"
+      }
+    }
+  }
+}
