@@ -8,7 +8,8 @@ class TestPackageScenario( unittest.TestCase ) :
 
     def testNode_ctor_1( self ):
         try:
-            node = scenario.Node( 'Test', input_variable_names = [ 'a', 'a' ] )
+            sim_tool = SimulationTool( 'dummy_tool', 'dummy_model', 'dummy_image', 'dummy_wrapper' )
+            node = scenario.Node( 'Test', sim_tool, input_variable_names = [ 'a', 'a' ] )
         except ValueError as e:
             expected_message = "'a' is already defined as input port for node 'Test'"
             self.assertEqual( str( e ), expected_message )
@@ -16,15 +17,17 @@ class TestPackageScenario( unittest.TestCase ) :
 
     def testNode_ctor_2( self ):
         try:
-            node = Node( 'Test', input_variable_names = [ 'a', 1 ] )
+            sim_tool = SimulationTool( 'dummy_tool', 'dummy_model', 'dummy_image', 'dummy_wrapper' )
+            node = Node( 'Test', sim_tool, input_variable_names = [ 'a', 1 ] )
         except TypeError as e:
-            expected_message = "parameter 'input_variable_name' must be of type 'str'"
+            expected_message = "parameter 'input_variable_names' must be of type 'list of str'"
             self.assertEqual( str( e ), expected_message )
 
 
     def testNode_ctor_3( self ):
         try:
-            node = Node( 'Test', output_variable_names = [ 'a', 'a' ] )
+            sim_tool = SimulationTool( 'dummy_tool', 'dummy_model', 'dummy_image', 'dummy_wrapper' )
+            node = Node( 'Test', sim_tool, output_variable_names = [ 'a', 'a' ] )
         except ValueError as e:
             expected_message = "'a' is already defined as output port for node 'Test'"
             self.assertEqual( str( e ), expected_message )
@@ -32,33 +35,38 @@ class TestPackageScenario( unittest.TestCase ) :
 
     def testNode_ctor_4( self ):
         try:
-            node = Node( 'Test', output_variable_names = [ 'b', 2 ] )
+            sim_tool = SimulationTool( 'dummy_tool', 'dummy_model', 'dummy_image', 'dummy_wrapper' )
+            node = Node( 'Test', sim_tool, output_variable_names = [ 'b', 2 ] )
         except TypeError as e:
-            expected_message = "parameter 'output_variable_name' must be of type 'str'"
+            expected_message = "parameter 'output_variable_names' must be of type 'list of str'"
             self.assertEqual( str( e ), expected_message )
 
 
     def testNode_has_input_variable( self ):
-        node_with_inputs = Node( 'TestNodeWithInputs', input_variable_names = [ 'a', 'b' ] )
+        sim_tool = SimulationTool( 'dummy_tool', 'dummy_model', 'dummy_image', 'dummy_wrapper' )
+        node_with_inputs = Node( 'TestNodeWithInputs', sim_tool, input_variable_names = [ 'a', 'b' ] )
         self.assertEqual( node_with_inputs.has_input_variable( 'b' ), True )
         self.assertEqual( node_with_inputs.has_input_variable( 'c' ), False )
 
 
     def testNode_has_output_variable( self ):
-        node_with_outputs = Node( 'TestNodeWithOutputs', output_variable_names = [ 'A', 'B' ] )
+        sim_tool = SimulationTool( 'dummy_tool', 'dummy_model', 'dummy_image', 'dummy_wrapper' )
+        node_with_outputs = Node( 'TestNodeWithOutputs', sim_tool, output_variable_names = [ 'A', 'B' ] )
         self.assertEqual( node_with_outputs.has_output_variable( 'B' ), True )
         self.assertEqual( node_with_outputs.has_output_variable( 'C' ), False )
 
 
     def testNode_get_input_port_1( self ):
-        node_with_inputs = Node( 'TestNode', input_variable_names = [ 'a' ] )
+        sim_tool = SimulationTool( 'dummy_tool', 'dummy_model', 'dummy_image', 'dummy_wrapper' )
+        node_with_inputs = Node( 'TestNode', sim_tool, input_variable_names = [ 'a' ] )
         port = node_with_inputs.get_input_port( 'a' )
         self.assertEqual( port.variable_name, 'a' )
         self.assertEqual( port.node, node_with_inputs )
-        
+
 
     def testNode_get_input_port_2( self ):
-        node_with_inputs = Node( 'TestNode' )
+        sim_tool = SimulationTool( 'dummy_tool', 'dummy_model', 'dummy_image', 'dummy_wrapper' )
+        node_with_inputs = Node( 'TestNode', sim_tool )
         try:
             port = node_with_inputs.get_input_port( 'a' )
         except RuntimeError as e:
@@ -67,14 +75,16 @@ class TestPackageScenario( unittest.TestCase ) :
 
 
     def testNode_get_output_port_1( self ):
-        node_with_outputs = Node( 'TestNode', output_variable_names = [ 'A' ] )
+        sim_tool = SimulationTool( 'dummy_tool', 'dummy_model', 'dummy_image', 'dummy_wrapper' )
+        node_with_outputs = Node( 'TestNode', sim_tool, output_variable_names = [ 'A' ] )
         port = node_with_outputs.get_output_port( 'A' )
         self.assertEqual( port.variable_name, 'A' )
         self.assertEqual( port.node, node_with_outputs )
-        
+
 
     def testNode_get_output_port_2( self ):
-        node_with_outputs = Node( 'TestNode' )
+        sim_tool = SimulationTool( 'dummy_tool', 'dummy_model', 'dummy_image', 'dummy_wrapper' )
+        node_with_outputs = Node( 'TestNode', sim_tool )
         try:
             port = node_with_outputs.get_output_port( 'A' )
         except RuntimeError as e:
@@ -83,14 +93,16 @@ class TestPackageScenario( unittest.TestCase ) :
 
 
     def testLink_ctor_1( self ):
-        node_with_inputs = Node( 'TestNodeWithInputs', input_variable_names = [ 'a', 'b' ] )
-        node_with_outputs = Node( 'TestNodeWithOutputs', output_variable_names = [ 'A', 'B' ] )
+        sim_tool = SimulationTool( 'dummy_tool', 'dummy_model', 'dummy_image', 'dummy_wrapper' )
+        node_with_inputs = Node( 'TestNodeWithInputs', sim_tool, input_variable_names = [ 'a', 'b' ] )
+        node_with_outputs = Node( 'TestNodeWithOutputs', sim_tool, output_variable_names = [ 'A', 'B' ] )
         link = Link( 'TestLink', node_with_outputs, 'A', node_with_inputs, 'a' )
 
 
     def testLink_ctor_2( self ):
         try:
-            link = Link( 'TestLink', Node( 'TestNode' ), 'a', Node( 'TestNode' ), 'a' )
+            sim_tool = SimulationTool( 'dummy_tool', 'dummy_model', 'dummy_image', 'dummy_wrapper' )
+            link = Link( 'TestLink', Node( 'TestNode', sim_tool ), 'a', Node( 'TestNode', sim_tool ), 'a' )
         except RuntimeError as e:
             expected_message = "parameter 'from_node' and 'to_node' are identical (by name): 'TestNode'"
             self.assertEqual( str( e ), expected_message )
@@ -98,7 +110,8 @@ class TestPackageScenario( unittest.TestCase ) :
 
     def testLink_ctor_3( self ):
         try:
-            link = Link( 'TestLink', Node( 'TestNode1' ), 'a', Node( 'TestNode2', input_variable_names = [ 'a' ] ), 'a' )
+            sim_tool = SimulationTool( 'dummy_tool', 'dummy_model', 'dummy_image', 'dummy_wrapper' )
+            link = Link( 'TestLink', Node( 'TestNode1', sim_tool ), 'a', Node( 'TestNode2', sim_tool, input_variable_names = [ 'a' ] ), 'a' )
         except RuntimeError as e:
             expected_message = "node 'TestNode1' has no output variable 'a'"
             self.assertEqual( str( e ), expected_message )
@@ -106,7 +119,8 @@ class TestPackageScenario( unittest.TestCase ) :
 
     def testLink_ctor_4( self ):
         try:
-            link = Link( 'TestLink', Node( 'TestNode1', output_variable_names = [ 'a' ] ), 'a', Node( 'TestNode2' ), 'a' )
+            sim_tool = SimulationTool( 'dummy_tool', 'dummy_model', 'dummy_image', 'dummy_wrapper' )
+            link = Link( 'TestLink', Node( 'TestNode1', sim_tool, output_variable_names = [ 'a' ] ), 'a', Node( 'TestNode2' , sim_tool ), 'a' )
         except RuntimeError as e:
             expected_message = "node 'TestNode2' has no input variable 'a'"
             self.assertEqual( str( e ), expected_message )
@@ -114,7 +128,8 @@ class TestPackageScenario( unittest.TestCase ) :
 
     def testLink_ctor_5( self ):
         try:
-            link = Link( 'TestLink', 'TestNode1', 'A', Node( 'TestNode2', input_variable_names = [ 'a' ] ), 'a' )
+            sim_tool = SimulationTool( 'dummy_tool', 'dummy_model', 'dummy_image', 'dummy_wrapper' )
+            link = Link( 'TestLink', 'TestNode1', 'A', Node( 'TestNode2', sim_tool, input_variable_names = [ 'a' ] ), 'a' )
         except TypeError as e:
             expected_message = "parameter 'from_node' must be of type 'Node'"
             self.assertEqual( str( e ), expected_message )
@@ -122,7 +137,8 @@ class TestPackageScenario( unittest.TestCase ) :
 
     def testLink_ctor_6( self ):
         try:
-            link = Link( 'TestLink', Node( 'TestNode1', output_variable_names = [ 'a' ] ), 'A', 'TestNode2', 'a' )
+            sim_tool = SimulationTool( 'dummy_tool', 'dummy_model', 'dummy_image', 'dummy_wrapper' )
+            link = Link( 'TestLink', Node( 'TestNode1', sim_tool, output_variable_names = [ 'a' ] ), 'A', 'TestNode2', 'a' )
         except TypeError as e:
             expected_message = "parameter 'to_node' must be of type 'Node'"
             self.assertEqual( str( e ), expected_message )
@@ -130,7 +146,8 @@ class TestPackageScenario( unittest.TestCase ) :
 
     def testLink_ctor_7( self ):
         try:
-            link = Link( 1, Node( 'TestNode1' ), 'A', Node( 'TestNode2' ), 'a' )
+            sim_tool = SimulationTool( 'dummy_tool', 'dummy_model', 'dummy_image', 'dummy_wrapper' )
+            link = Link( 1, Node( 'TestNode1', sim_tool ), 'A', Node( 'TestNode2', sim_tool ), 'a' )
         except TypeError as e:
             expected_message = "parameter 'link_name' must be of type 'str'"
             self.assertEqual( str( e ), expected_message )
@@ -142,7 +159,7 @@ class TestPackageScenario( unittest.TestCase ) :
 
     def testScenario_ctor_2( self ):
         try:
-            scenario = Scenario( Node( 'TestNode' ) )
+            scenario = Scenario( Node( 'TestNode', SimulationTool( 'dummy_tool', 'dummy_model', 'dummy_image', 'dummy_wrapper' ) ) )
         except TypeError as e:
             expected_message = "parameter 'scenario_name' must be of type 'str'"
             self.assertEqual( str( e ), expected_message )
@@ -150,7 +167,7 @@ class TestPackageScenario( unittest.TestCase ) :
 
     def testScenario_add_node_1( self ):
         scenario = Scenario( 'TestScenario' )
-        scenario.add_node( Node( 'TestNode' ) )
+        scenario.add_node( Node( 'TestNode', SimulationTool( 'dummy_tool', 'dummy_model', 'dummy_image', 'dummy_wrapper' ) ) )
 
 
     def testScenario_add_node_2( self ):
@@ -165,7 +182,7 @@ class TestPackageScenario( unittest.TestCase ) :
     def testScenario_add_nodes_1( self ):
         scenario = Scenario( 'TestScenario' )
         try:
-            scenario.add_nodes( [ Node( 'TestNode' ), 'TestNode' ] )
+            scenario.add_nodes( [ Node( 'TestNode', SimulationTool( 'dummy_tool', 'dummy_model', 'dummy_image', 'dummy_wrapper' ) ), 'TestNode' ] )
         except TypeError as e:
             expected_message = "parameter 'node' must be of type 'Node'"
             self.assertEqual( str( e ), expected_message )
@@ -175,15 +192,17 @@ class TestPackageScenario( unittest.TestCase ) :
         scenario = Scenario( 'TestScenario' )
         try:
             scenario.reset()
-            scenario.add_nodes( [ Node( 'TestNode' ), Node( 'TestNode' ) ] )
+            sim_tool = SimulationTool( 'dummy_tool', 'dummy_model', 'dummy_image', 'dummy_wrapper' )
+            scenario.add_nodes( [ Node( 'TestNode', sim_tool ), Node( 'TestNode', sim_tool ) ] )
         except RuntimeError as e:
             expected_message = "node 'TestNode' has already been defined for scenario 'TestScenario'"
             self.assertEqual( str( e ), expected_message )
 
 
     def testScenario_add_link_1( self ):
-        node_with_inputs = Node( 'TestNodeWithInputs', input_variable_names = [ 'a', 'b' ] )
-        node_with_outputs = Node( 'TestNodeWithOutputs', output_variable_names = [ 'A', 'B' ] )
+        sim_tool = SimulationTool( 'dummy_tool', 'dummy_model', 'dummy_image', 'dummy_wrapper' )
+        node_with_inputs = Node( 'TestNodeWithInputs', sim_tool, input_variable_names = [ 'a', 'b' ] )
+        node_with_outputs = Node( 'TestNodeWithOutputs', sim_tool, output_variable_names = [ 'A', 'B' ] )
         link = Link( 'TestLink', node_with_outputs, 'A', node_with_inputs, 'a' )
         scenario = Scenario( 'TestScenario' )
         try:
@@ -194,8 +213,9 @@ class TestPackageScenario( unittest.TestCase ) :
 
 
     def testScenario_add_link_2( self ):
-        node_with_inputs = Node( 'TestNodeWithInputs', input_variable_names = [ 'a', 'b' ] )
-        node_with_outputs = Node( 'TestNodeWithOutputs', output_variable_names = [ 'A', 'B' ] )
+        sim_tool = SimulationTool( 'dummy_tool', 'dummy_model', 'dummy_image', 'dummy_wrapper' )
+        node_with_inputs = Node( 'TestNodeWithInputs', sim_tool, input_variable_names = [ 'a', 'b' ] )
+        node_with_outputs = Node( 'TestNodeWithOutputs', sim_tool, output_variable_names = [ 'A', 'B' ] )
         link = Link( 'TestLink', node_with_outputs, 'A', node_with_inputs, 'a' )
         scenario = Scenario( 'TestScenario' )
         scenario.add_node( node_with_inputs )
@@ -207,8 +227,9 @@ class TestPackageScenario( unittest.TestCase ) :
 
 
     def testScenario_add_link_3( self ):
-        node_with_inputs = Node( 'TestNodeWithInputs', input_variable_names = [ 'a', 'b' ] )
-        node_with_outputs = Node( 'TestNodeWithOutputs', output_variable_names = [ 'A', 'B' ] )
+        sim_tool = SimulationTool( 'dummy_tool', 'dummy_model', 'dummy_image', 'dummy_wrapper' )
+        node_with_inputs = Node( 'TestNodeWithInputs', sim_tool, input_variable_names = [ 'a', 'b' ] )
+        node_with_outputs = Node( 'TestNodeWithOutputs', sim_tool, output_variable_names = [ 'A', 'B' ] )
         link = Link( 'TestLink', node_with_outputs, 'A', node_with_inputs, 'a' )
         scenario = Scenario( 'TestScenario' )
         scenario.add_node( node_with_inputs )
@@ -220,8 +241,9 @@ class TestPackageScenario( unittest.TestCase ) :
 
 
     def testScenario_add_link_4( self ):
-        node_with_inputs = Node( 'TestNodeWithInputs', input_variable_names = [ 'a', 'b' ] )
-        node_with_outputs = Node( 'TestNodeWithOutputs', output_variable_names = [ 'A', 'B' ] )
+        sim_tool = SimulationTool( 'dummy_tool', 'dummy_model', 'dummy_image', 'dummy_wrapper' )
+        node_with_inputs = Node( 'TestNodeWithInputs', sim_tool, input_variable_names = [ 'a', 'b' ] )
+        node_with_outputs = Node( 'TestNodeWithOutputs', sim_tool, output_variable_names = [ 'A', 'B' ] )
         link = Link( 'TestLink', node_with_outputs, 'A', node_with_inputs, 'a' )
         scenario = Scenario( 'TestScenario' )
         scenario.add_node( node_with_outputs )
@@ -233,8 +255,9 @@ class TestPackageScenario( unittest.TestCase ) :
 
 
     def testScenario_add_link_5( self ):
-        node_with_inputs = Node( 'TestNodeWithInputs', input_variable_names = [ 'a', 'b' ] )
-        node_with_outputs = Node( 'TestNodeWithOutputs', output_variable_names = [ 'A', 'B' ] )
+        sim_tool = SimulationTool( 'dummy_tool', 'dummy_model', 'dummy_image', 'dummy_wrapper' )
+        node_with_inputs = Node( 'TestNodeWithInputs', sim_tool, input_variable_names = [ 'a', 'b' ] )
+        node_with_outputs = Node( 'TestNodeWithOutputs', sim_tool, output_variable_names = [ 'A', 'B' ] )
         link = Link( 'TestLink', node_with_outputs, 'A', node_with_inputs, 'a' )
         scenario = Scenario( 'TestScenario' )
         scenario.add_node( node_with_inputs )
@@ -249,8 +272,9 @@ class TestPackageScenario( unittest.TestCase ) :
 
     def testScenario_add_link_6( self ):
         scenario = Scenario( 'TestScenario' )
-        node_with_inputs = scenario.create_and_add_node( 'TestNodeWithInputs', input_variable_names = [ 'a', 'b' ] )
-        node_with_outputs = scenario.create_and_add_node( 'TestNodeWithOutputs', output_variable_names = [ 'A', 'B' ] )
+        sim_tool = SimulationTool( 'dummy_tool', 'dummy_model', 'dummy_image', 'dummy_wrapper' )
+        node_with_inputs = scenario.create_and_add_node( 'TestNodeWithInputs', sim_tool, input_variable_names = [ 'a', 'b' ] )
+        node_with_outputs = scenario.create_and_add_node( 'TestNodeWithOutputs', sim_tool, output_variable_names = [ 'A', 'B' ] )
         link = Link( 'TestLink', node_with_outputs, 'A', node_with_inputs, 'a' )
         scenario.add_link( link )
         try:
@@ -262,8 +286,9 @@ class TestPackageScenario( unittest.TestCase ) :
 
     def testScenario_add_link_7( self ):
         scenario = Scenario( 'TestScenario' )
-        node_with_inputs = scenario.create_and_add_node( 'TestNodeWithInputs', input_variable_names = [ 'a', 'b' ] )
-        node_with_outputs = scenario.create_and_add_node( 'TestNodeWithOutputs', output_variable_names = [ 'A', 'B' ] )
+        sim_tool = SimulationTool( 'dummy_tool', 'dummy_model', 'dummy_image', 'dummy_wrapper' )
+        node_with_inputs = scenario.create_and_add_node( 'TestNodeWithInputs', sim_tool, input_variable_names = [ 'a', 'b' ] )
+        node_with_outputs = scenario.create_and_add_node( 'TestNodeWithOutputs', sim_tool, output_variable_names = [ 'A', 'B' ] )
         try:
             scenario.create_and_add_link( 1, 'TestNodeWithOutputs', 'A', 'TestNodeWithInputs', 'a' )
         except TypeError as e:
@@ -273,15 +298,17 @@ class TestPackageScenario( unittest.TestCase ) :
 
     def testScenario_add_link_8( self ):
         scenario = Scenario( 'TestScenario' )
-        node_with_inputs = scenario.create_and_add_node( 'TestNodeWithInputs', input_variable_names = [ 'a', 'b' ] )
-        node_with_outputs = scenario.create_and_add_node( 'TestNodeWithOutputs', output_variable_names = [ 'A', 'B' ] )
+        sim_tool = SimulationTool( 'dummy_tool', 'dummy_model', 'dummy_image', 'dummy_wrapper' )
+        node_with_inputs = scenario.create_and_add_node( 'TestNodeWithInputs', sim_tool, input_variable_names = [ 'a', 'b' ] )
+        node_with_outputs = scenario.create_and_add_node( 'TestNodeWithOutputs', sim_tool, output_variable_names = [ 'A', 'B' ] )
         scenario.create_and_add_link( 'TestLink', node_with_outputs, 'A', 'TestNodeWithInputs', 'a' )
 
 
     def testScenario_add_link_9( self ):
         scenario = Scenario( 'TestScenario' )
-        node_with_inputs = scenario.create_and_add_node( 'TestNodeWithInputs', input_variable_names = [ 'a', 'b' ] )
-        node_with_outputs = scenario.create_and_add_node( 'TestNodeWithOutputs', output_variable_names = [ 'A', 'B' ] )
+        sim_tool = SimulationTool( 'dummy_tool', 'dummy_model', 'dummy_image', 'dummy_wrapper' )
+        node_with_inputs = scenario.create_and_add_node( 'TestNodeWithInputs', sim_tool, input_variable_names = [ 'a', 'b' ] )
+        node_with_outputs = scenario.create_and_add_node( 'TestNodeWithOutputs', sim_tool, output_variable_names = [ 'A', 'B' ] )
         try:
             scenario.create_and_add_link( 'TestLink', 'TestNodeWithOutputs', 1, 'TestNodeWithInputs', 'a' )
         except TypeError as e:
@@ -291,15 +318,17 @@ class TestPackageScenario( unittest.TestCase ) :
 
     def testScenario_add_link_10( self ):
         scenario = Scenario( 'TestScenario' )
-        node_with_inputs = scenario.create_and_add_node( 'TestNodeWithInputs', input_variable_names = [ 'a', 'b' ] )
-        node_with_outputs = scenario.create_and_add_node( 'TestNodeWithOutputs', output_variable_names = [ 'A', 'B' ] )
+        sim_tool = SimulationTool( 'dummy_tool', 'dummy_model', 'dummy_image', 'dummy_wrapper' )
+        node_with_inputs = scenario.create_and_add_node( 'TestNodeWithInputs', sim_tool, input_variable_names = [ 'a', 'b' ] )
+        node_with_outputs = scenario.create_and_add_node( 'TestNodeWithOutputs', sim_tool, output_variable_names = [ 'A', 'B' ] )
         scenario.create_and_add_link( 'TestLink', 'TestNodeWithOutputs', 'A', node_with_inputs, 'a' )
 
 
     def testScenario_add_link_11( self ):
         scenario = Scenario( 'TestScenario' )
-        node_with_inputs = scenario.create_and_add_node( 'TestNodeWithInputs', input_variable_names = [ 'a', 'b' ] )
-        node_with_outputs = scenario.create_and_add_node( 'TestNodeWithOutputs', output_variable_names = [ 'A', 'B' ] )
+        sim_tool = SimulationTool( 'dummy_tool', 'dummy_model', 'dummy_image', 'dummy_wrapper' )
+        node_with_inputs = scenario.create_and_add_node( 'TestNodeWithInputs', sim_tool, input_variable_names = [ 'a', 'b' ] )
+        node_with_outputs = scenario.create_and_add_node( 'TestNodeWithOutputs', sim_tool, output_variable_names = [ 'A', 'B' ] )
         try:
             scenario.create_and_add_link( 'TestLink', 'TestNodeWithOutputs', 'A', 'TestNodeWithInputs', 1 )
         except TypeError as e:
@@ -309,8 +338,9 @@ class TestPackageScenario( unittest.TestCase ) :
 
     def testScenario_add_link_12( self ):
         scenario = Scenario( 'TestScenario' )
-        node_with_inputs = scenario.create_and_add_node( 'TestNodeWithInputs', input_variable_names = [ 'a', 'b' ] )
-        node_with_outputs = scenario.create_and_add_node( 'TestNodeWithOutputs', output_variable_names = [ 'A', 'B' ] )
+        sim_tool = SimulationTool( 'dummy_tool', 'dummy_model', 'dummy_image', 'dummy_wrapper' )
+        node_with_inputs = scenario.create_and_add_node( 'TestNodeWithInputs', sim_tool, input_variable_names = [ 'a', 'b' ] )
+        node_with_outputs = scenario.create_and_add_node( 'TestNodeWithOutputs', sim_tool, output_variable_names = [ 'A', 'B' ] )
         scenario.create_and_add_link( 'TestLink', 'TestNodeWithOutputs', 'A', 'TestNodeWithInputs', 'a' )
         try:
             scenario.create_and_add_link( 'TestLink', 'TestNodeWithOutputs', 'A', 'TestNodeWithInputs', 'a' )
@@ -321,7 +351,7 @@ class TestPackageScenario( unittest.TestCase ) :
 
     def testScenario_get_node_names( self ):
         scenario = Scenario( 'TestScenario' )
-        scenario.create_and_add_node( 'TestNode' )
+        scenario.create_and_add_node( 'TestNode', SimulationTool( 'dummy_tool', 'dummy_model', 'dummy_image', 'dummy_wrapper' ) )
         node_names = scenario.get_node_names()
         self.assertEqual( len( node_names ), 1 )
         self.assertEqual( node_names[0], 'TestNode' )
@@ -329,7 +359,7 @@ class TestPackageScenario( unittest.TestCase ) :
 
     def testScenario_get_node( self ):
         scenario = Scenario( 'TestScenario' )
-        scenario.create_and_add_node( 'TestNode' )
+        scenario.create_and_add_node( 'TestNode', SimulationTool( 'dummy_tool', 'dummy_model', 'dummy_image', 'dummy_wrapper' ) )
         node = scenario.get_node( 'TestNode' )
         self.assertNotEqual( node, None )
         self.assertEqual( node.node_name, 'TestNode' )
@@ -337,8 +367,9 @@ class TestPackageScenario( unittest.TestCase ) :
 
     def testScenario_get_link_names( self ):
         scenario = Scenario( 'TestScenario' )
-        node_with_inputs = scenario.create_and_add_node( 'TestNodeWithInputs', input_variable_names = [ 'a', 'b' ] )
-        node_with_outputs = scenario.create_and_add_node( 'TestNodeWithOutputs', output_variable_names = [ 'A', 'B' ] )
+        sim_tool = SimulationTool( 'dummy_tool', 'dummy_model', 'dummy_image', 'dummy_wrapper' )
+        node_with_inputs = scenario.create_and_add_node( 'TestNodeWithInputs', sim_tool, input_variable_names = [ 'a', 'b' ] )
+        node_with_outputs = scenario.create_and_add_node( 'TestNodeWithOutputs', sim_tool, output_variable_names = [ 'A', 'B' ] )
         scenario.create_and_add_link( 'TestLink', 'TestNodeWithOutputs', 'A', 'TestNodeWithInputs', 'a' )
         link_names = scenario.get_link_names()
         self.assertEqual( len( link_names ), 1 )
@@ -347,8 +378,9 @@ class TestPackageScenario( unittest.TestCase ) :
 
     def testScenario_get_link( self ):
         scenario = Scenario( 'TestScenario' )
-        node_with_inputs = scenario.create_and_add_node( 'TestNodeWithInputs', input_variable_names = [ 'a', 'b' ] )
-        node_with_outputs = scenario.create_and_add_node( 'TestNodeWithOutputs', output_variable_names = [ 'A', 'B' ] )
+        sim_tool = SimulationTool( 'dummy_tool', 'dummy_model', 'dummy_image', 'dummy_wrapper' )
+        node_with_inputs = scenario.create_and_add_node( 'TestNodeWithInputs', sim_tool, input_variable_names = [ 'a', 'b' ] )
+        node_with_outputs = scenario.create_and_add_node( 'TestNodeWithOutputs', sim_tool, output_variable_names = [ 'A', 'B' ] )
         scenario.create_and_add_link( 'TestLink', 'TestNodeWithOutputs', 'A', 'TestNodeWithInputs', 'a' )
         link = scenario.get_link( 'TestLink' )
         self.assertNotEqual( link, None )
@@ -358,9 +390,16 @@ class TestPackageScenario( unittest.TestCase ) :
     def testScenario_write_json_1( self ):
         # Create scenario.
         scenario = Scenario( 'TestScenario' )
-        scenario.create_and_add_node( 'A', input_variable_names = [ 'seta' ], output_variable_names = [ 'ta' ] )
-        scenario.create_and_add_node( 'B', output_variable_names = [ 'tb' ] )
-        scenario.create_and_add_node( 'C', input_variable_names = [ 't1', 't2' ], output_variable_names = [ 'setc' ] )
+
+        toolA = SimulationTool( 'toolA', 'modelA', 'imageA', 'wrapperA', 'commandA', [ 'fileA' ] )
+        scenario.create_and_add_node( 'A', toolA, input_variable_names = [ 'seta' ], output_variable_names = [ 'ta' ] )
+
+        toolB = SimulationTool( 'toolB', 'modelB', 'imageB', 'wrapperB', 'commandB', [ 'fileB' ] )
+        scenario.create_and_add_node( 'B', toolB, output_variable_names = [ 'tb' ] )
+
+        toolC = SimulationTool( 'toolC', 'modelC', 'imageC', 'wrapperC', 'commandC', [ 'fileC' ] )
+        scenario.create_and_add_node( 'C', toolC, input_variable_names = [ 't1', 't2' ], output_variable_names = [ 'setc' ] )
+
         scenario.create_and_add_link( 'l1', from_node = 'A', output_variable_name = 'ta', to_node = 'C', input_variable_name = 't1' )
         scenario.create_and_add_link( 'l2', from_node = 'B', output_variable_name = 'tb', to_node = 'C', input_variable_name = 't2' )
         scenario.create_and_add_link( 'l3', from_node = 'C', output_variable_name = 'setc', to_node = 'A', input_variable_name = 'seta' )
@@ -451,12 +490,20 @@ class TestPackageScenario( unittest.TestCase ) :
     def testScenario_createScenario_1( self ):
         # Create scenario.
         scenario = Scenario( 'TestScenario' )
-        scenario.create_and_add_node( 'A', input_variable_names = [ 'seta' ], output_variable_names = [ 'ta' ] )
-        scenario.create_and_add_node( 'B', output_variable_names = [ 'tb' ] )
-        scenario.create_and_add_node( 'C', input_variable_names = [ 't1', 't2' ], output_variable_names = [ 'setc' ] )
+
+        toolA = SimulationTool( 'toolA', 'modelA', 'imageA', 'wrapperA' )
+        scenario.create_and_add_node( 'A', toolA, input_variable_names = [ 'seta' ], output_variable_names = [ 'ta' ] )
+
+        toolB = SimulationTool( 'toolB', 'modelB', 'imageB', 'wrapperB' )
+        scenario.create_and_add_node( 'B', toolB, output_variable_names = [ 'tb' ] )
+
+        toolC = SimulationTool( 'toolC', 'modelC', 'imageC', 'wrapperC' )
+        scenario.create_and_add_node( 'C', toolC, input_variable_names = [ 't1', 't2' ], output_variable_names = [ 'setc' ] )
+
         scenario.create_and_add_link( 'l1', from_node = 'A', output_variable_name = 'ta', to_node = 'C', input_variable_name = 't1' )
         scenario.create_and_add_link( 'l2', from_node = 'B', output_variable_name = 'tb', to_node = 'C', input_variable_name = 't2' )
         scenario.create_and_add_link( 'l3', from_node = 'C', output_variable_name = 'setc', to_node = 'A', input_variable_name = 'seta' )
+
         # Read scenario from JSON-formatted file.
 
         # Check node names.
@@ -473,21 +520,36 @@ class TestPackageScenario( unittest.TestCase ) :
         self.assertTrue( 'l2' in link_names )
         self.assertTrue( 'l3' in link_names )
 
-        # Check nodes.
+        # Check nodes (and associated simulation tools).
         self.assertTrue( scenario.nodes[ 'A' ].has_input_variable( 'seta' ) )
         self.assertEqual( len( scenario.nodes[ 'A' ].input_ports ), 1 )
         self.assertTrue( scenario.nodes[ 'A' ].has_output_variable( 'ta' ) )
         self.assertEqual( len( scenario.nodes[ 'A' ].output_ports ), 1 )
+        self.assertEqual( scenario.nodes[ 'A' ].sim_tool.model, 'modelA' )
+        self.assertEqual( scenario.nodes[ 'A' ].sim_tool.image, 'imageA' )
+        self.assertEqual( scenario.nodes[ 'A' ].sim_tool.wrapper, 'wrapperA' )
+        self.assertEqual( scenario.nodes[ 'A' ].sim_tool.command, None )
+        self.assertEqual( scenario.nodes[ 'A' ].sim_tool.files, None )
 
         self.assertEqual( len( scenario.nodes[ 'B' ].input_ports ), 0 )
         self.assertTrue( scenario.nodes[ 'B' ].has_output_variable( 'tb' ) )
         self.assertEqual( len( scenario.nodes[ 'B' ].output_ports ), 1 )
+        self.assertEqual( scenario.nodes[ 'B' ].sim_tool.model, 'modelB' )
+        self.assertEqual( scenario.nodes[ 'B' ].sim_tool.image, 'imageB' )
+        self.assertEqual( scenario.nodes[ 'B' ].sim_tool.wrapper, 'wrapperB' )
+        self.assertEqual( scenario.nodes[ 'B' ].sim_tool.command, None )
+        self.assertEqual( scenario.nodes[ 'B' ].sim_tool.files, None )
 
         self.assertTrue( scenario.nodes[ 'C' ].has_input_variable( 't1' ) )
         self.assertTrue( scenario.nodes[ 'C' ].has_input_variable( 't2' ) )
         self.assertEqual( len( scenario.nodes[ 'C' ].input_ports ), 2 )
         self.assertTrue( scenario.nodes[ 'C' ].has_output_variable( 'setc' ) )
         self.assertEqual( len( scenario.nodes[ 'C' ].output_ports ), 1 )
+        self.assertEqual( scenario.nodes[ 'C' ].sim_tool.model, 'modelC' )
+        self.assertEqual( scenario.nodes[ 'C' ].sim_tool.image, 'imageC' )
+        self.assertEqual( scenario.nodes[ 'C' ].sim_tool.wrapper, 'wrapperC' )
+        self.assertEqual( scenario.nodes[ 'C' ].sim_tool.command, None )
+        self.assertEqual( scenario.nodes[ 'C' ].sim_tool.files, None )
 
         # Check links.
         self.assertEqual( scenario.links[ 'l1' ].output_port.node.node_name, 'A' )
@@ -510,9 +572,14 @@ class TestPackageScenario( unittest.TestCase ) :
         # Create scenario.
         scenario = Scenario( 'TestScenario' )
 
-        nodeA = Node( 'A', input_variable_names = [ 'seta' ], output_variable_names = [ 'ta' ] )
-        nodeB = Node( 'B', output_variable_names = [ 'tb' ] )
-        nodeC = Node( 'C', input_variable_names = [ 't1', 't2' ], output_variable_names = [ 'setc' ] )
+        toolA = SimulationTool( 'toolA', 'modelA', 'imageA', 'wrapperA' )
+        nodeA = Node( 'A', toolA, input_variable_names = [ 'seta' ], output_variable_names = [ 'ta' ] )
+
+        toolB = SimulationTool( 'toolB', 'modelB', 'imageB', 'wrapperB' )
+        nodeB = Node( 'B', toolB, output_variable_names = [ 'tb' ] )
+
+        toolC = SimulationTool( 'toolC', 'modelC', 'imageC', 'wrapperC' )
+        nodeC = Node( 'C', toolC, input_variable_names = [ 't1', 't2' ], output_variable_names = [ 'setc' ] )
 
         link1 = Link( 'l1', from_node = nodeA, output_variable_name = 'ta', to_node = nodeC, input_variable_name = 't1' )
         link2 = Link( 'l2', from_node = nodeB, output_variable_name = 'tb', to_node = nodeC, input_variable_name = 't2' )
@@ -540,21 +607,36 @@ class TestPackageScenario( unittest.TestCase ) :
         self.assertTrue( 'l2' in link_names )
         self.assertTrue( 'l3' in link_names )
 
-        # Check nodes.
+        # Check nodes (and associated simulation tools).
         self.assertTrue( scenario.nodes[ 'A' ].has_input_variable( 'seta' ) )
         self.assertEqual( len( scenario.nodes[ 'A' ].input_ports ), 1 )
         self.assertTrue( scenario.nodes[ 'A' ].has_output_variable( 'ta' ) )
         self.assertEqual( len( scenario.nodes[ 'A' ].output_ports ), 1 )
+        self.assertEqual( scenario.nodes[ 'A' ].sim_tool.model, 'modelA' )
+        self.assertEqual( scenario.nodes[ 'A' ].sim_tool.image, 'imageA' )
+        self.assertEqual( scenario.nodes[ 'A' ].sim_tool.wrapper, 'wrapperA' )
+        self.assertEqual( scenario.nodes[ 'A' ].sim_tool.command, None )
+        self.assertEqual( scenario.nodes[ 'A' ].sim_tool.files, None )
 
         self.assertEqual( len( scenario.nodes[ 'B' ].input_ports ), 0 )
         self.assertTrue( scenario.nodes[ 'B' ].has_output_variable( 'tb' ) )
         self.assertEqual( len( scenario.nodes[ 'B' ].output_ports ), 1 )
+        self.assertEqual( scenario.nodes[ 'B' ].sim_tool.model, 'modelB' )
+        self.assertEqual( scenario.nodes[ 'B' ].sim_tool.image, 'imageB' )
+        self.assertEqual( scenario.nodes[ 'B' ].sim_tool.wrapper, 'wrapperB' )
+        self.assertEqual( scenario.nodes[ 'B' ].sim_tool.command, None )
+        self.assertEqual( scenario.nodes[ 'B' ].sim_tool.files, None )
 
         self.assertTrue( scenario.nodes[ 'C' ].has_input_variable( 't1' ) )
         self.assertTrue( scenario.nodes[ 'C' ].has_input_variable( 't2' ) )
         self.assertEqual( len( scenario.nodes[ 'C' ].input_ports ), 2 )
         self.assertTrue( scenario.nodes[ 'C' ].has_output_variable( 'setc' ) )
         self.assertEqual( len( scenario.nodes[ 'C' ].output_ports ), 1 )
+        self.assertEqual( scenario.nodes[ 'C' ].sim_tool.model, 'modelC' )
+        self.assertEqual( scenario.nodes[ 'C' ].sim_tool.image, 'imageC' )
+        self.assertEqual( scenario.nodes[ 'C' ].sim_tool.wrapper, 'wrapperC' )
+        self.assertEqual( scenario.nodes[ 'C' ].sim_tool.command, None )
+        self.assertEqual( scenario.nodes[ 'C' ].sim_tool.files, None )
 
         # Check links.
         self.assertEqual( scenario.links[ 'l1' ].output_port.node.node_name, 'A' )

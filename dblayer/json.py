@@ -19,8 +19,16 @@ def dump_to_json_string( scenario ):
         write_inputs = list( node.input_ports.keys() )
         write_outputs = list( node.output_ports.keys() )
 
+        sim_tool_name = node.sim_tool.name
+        sim_tool_model = node.sim_tool.model
+        sim_tool_image = node.sim_tool.image
+        sim_tool_wrapper = node.sim_tool.wrapper
+        sim_tool_command = node.sim_tool.command
+        sim_tool_files = node.sim_tool.files
+        write_tool = { 'name' : sim_tool_name, 'model' : sim_tool_model, 'image' : sim_tool_image, 'wrapper' : sim_tool_wrapper, 'command' : sim_tool_command, 'files' : sim_tool_files }
+
         # Write to dictionary.
-        write_nodes[ node_name ] = { 'inputs' : write_inputs, 'outputs' : write_outputs }
+        write_nodes[ node_name ] = { 'inputs' : write_inputs, 'outputs' : write_outputs, 'sim_tool' : write_tool }
 
     # Dictionary for collecting and writeing all information regarding the scenario's links.
     write_links = {}
@@ -52,7 +60,7 @@ def dump_to_json_file( scenario, file_name ):
     Dump scenario to JSON-formatted file.
     """
     # Check if parameter 'scenario' is of correct type (Scenario).
-    if not isinstance( scenario, _scenario.Senario ):
+    if not isinstance( scenario, _scenario.Scenario ):
         raise TypeError( 'parameter \'scenario\' must be of type \'Scenario\'' )
 
     # Check if parameter 'file_name' is of correct type (str).
@@ -93,9 +101,13 @@ def read_from_json_string( json_string, scenario_name ):
     # Add nodes.
     read_nodes = read_scenario[ 'nodes' ]
     for node_name, node_data in read_nodes.items():
+        sim_tool_data = node_data[ 'sim_tool' ]
+        sim_tool = _scenario.SimulationTool( sim_tool_data[ 'name' ], sim_tool_data[ 'model' ], sim_tool_data[ 'image' ], sim_tool_data[ 'wrapper' ], sim_tool_data[ 'command' ], sim_tool_data[ 'files' ] )
+
         input_variable_names = node_data[ 'inputs' ] if ( 'inputs' in node_data ) else []
         output_variable_names = node_data[ 'outputs' ] if ( 'outputs' in node_data ) else []
-        scenario.create_and_add_node( node_name, input_variable_names, output_variable_names )
+
+        scenario.create_and_add_node( node_name, sim_tool, input_variable_names, output_variable_names )
 
     # Add links.
     read_links = read_scenario[ 'links' ]

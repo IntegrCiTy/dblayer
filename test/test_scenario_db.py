@@ -3,7 +3,7 @@ import unittest
 from datetime import datetime
 
 from dblayer import *
-from dblayer.db import *
+import dblayer.db as db
 
 import sqlalchemy.orm.exc
 
@@ -13,22 +13,22 @@ class TestPackageScenarioDB( unittest.TestCase ) :
 
 
     # Define connection parameters.
-    connect = PostgreSQLConnectionInfo( 
-        user = 'postgres', 
-        pwd = 'postgres', 
-        host = 'localhost', 
-        port = '5432', 
+    connect = db.PostgreSQLConnectionInfo(
+        user = 'postgres',
+        pwd = 'postgres',
+        host = 'localhost',
+        port = '5432',
         dbname = 'testdb'
         )
 
     def testScenario_cleanup_schema_1( self ):
-        cleanup_schema( self.connect )
+        db.cleanup_schema( self.connect )
 
 
     def testScenario_read_db_1( self ):
         try:
             # Try to read a scenario that does not exist.
-            scenario = read_from_db( self.connect, 'TestScenarioX' )
+            scenario = db.read_from_db( self.connect, 'TestScenarioX' )
         except sqlalchemy.orm.exc.NoResultFound as e:
             expected_message = "No row was found for one()"
             self.assertEqual( str( e ), expected_message )
@@ -37,15 +37,22 @@ class TestPackageScenarioDB( unittest.TestCase ) :
     def testScenario_write_db_1( self ):
         # Create a scenario for testing.
         scenario = Scenario( 'TestScenario1' )
-        scenario.create_and_add_node( 'A', input_variable_names = [ 'seta' ], output_variable_names = [ 'ta' ] )
-        scenario.create_and_add_node( 'B', output_variable_names = [ 'tb' ] )
-        scenario.create_and_add_node( 'C', input_variable_names = [ 't1', 't2' ], output_variable_names = [ 'setc' ] )
+
+        toolA = SimulationTool( name = 'toolA', model = 'modelA', image = 'imageA', wrapper = 'wrapperA', files = [ 'fileA' ] )
+        scenario.create_and_add_node( 'A', toolA, input_variable_names = [ 'seta' ], output_variable_names = [ 'ta' ] )
+
+        toolB = SimulationTool( name = 'toolB', model = 'modelB', image = 'imageB', wrapper = 'wrapperB', files = [ 'fileB1', 'fileB2' ] )
+        scenario.create_and_add_node( 'B', toolB, output_variable_names = [ 'tb' ] )
+
+        toolC = SimulationTool( name = 'toolc', model = 'modelC', image = 'imageC', wrapper = 'wrapperC', command = 'commandC' )
+        scenario.create_and_add_node( 'C', toolC, input_variable_names = [ 't1', 't2' ], output_variable_names = [ 'setc' ] )
+
         scenario.create_and_add_link( 'l1', from_node = 'A', output_variable_name = 'ta', to_node = 'C', input_variable_name = 't1' )
         scenario.create_and_add_link( 'l2', from_node = 'B', output_variable_name = 'tb', to_node = 'C', input_variable_name = 't2' )
         scenario.create_and_add_link( 'l3', from_node = 'C', output_variable_name = 'setc', to_node = 'A', input_variable_name = 'seta' )
 
         # Write to database.
-        write_to_db( self.connect, scenario )
+        db.write_to_db( self.connect, scenario )
 
 #         # NOT YET IMPLEMENTED: Try to write a scenario with an already existing name to database.
 #         try:
@@ -62,18 +69,25 @@ class TestPackageScenarioDB( unittest.TestCase ) :
 
         # Create a scenario that will be written to the database.
         write_scenario = Scenario( scenario_name )
-        write_scenario.create_and_add_node( 'A', input_variable_names = [ 'seta' ], output_variable_names = [ 'ta' ] )
-        write_scenario.create_and_add_node( 'B', output_variable_names = [ 'tb' ] )
-        write_scenario.create_and_add_node( 'C', input_variable_names = [ 't1', 't2' ], output_variable_names = [ 'setc' ] )
+
+        toolA = SimulationTool( name = 'toolA_', model = 'modelA', image = 'imageA', wrapper = 'wrapperA', files = [ 'fileA' ] )
+        write_scenario.create_and_add_node( 'A', toolA, input_variable_names = [ 'seta' ], output_variable_names = [ 'ta' ] )
+
+        toolB = SimulationTool( name = 'toolB_', model = 'modelB', image = 'imageB', wrapper = 'wrapperB', files = [ 'fileB1', 'fileB2' ] )
+        write_scenario.create_and_add_node( 'B', toolB, output_variable_names = [ 'tb' ] )
+
+        toolC = SimulationTool( name = 'toolC_', model = 'modelC', image = 'imageC', wrapper = 'wrapperC', command = 'commandC' )
+        write_scenario.create_and_add_node( 'C', toolC, input_variable_names = [ 't1', 't2' ], output_variable_names = [ 'setc' ] )
+
         write_scenario.create_and_add_link( 'l1', from_node = 'A', output_variable_name = 'ta', to_node = 'C', input_variable_name = 't1' )
         write_scenario.create_and_add_link( 'l2', from_node = 'B', output_variable_name = 'tb', to_node = 'C', input_variable_name = 't2' )
         write_scenario.create_and_add_link( 'l3', from_node = 'C', output_variable_name = 'setc', to_node = 'A', input_variable_name = 'seta' )
 
         # Write scenario to database.
-        write_to_db( self.connect, write_scenario )
+        db.write_to_db( self.connect, write_scenario )
 
         # Read scenario from database.
-        read_scenario = read_from_db( self.connect, scenario_name )
+        read_scenario = db.read_from_db( self.connect, scenario_name )
 
         # Check node names.
         node_names = read_scenario.get_node_names()
@@ -94,16 +108,31 @@ class TestPackageScenarioDB( unittest.TestCase ) :
         self.assertEqual( len( read_scenario.nodes[ 'A' ].input_ports ), 1 )
         self.assertTrue( read_scenario.nodes[ 'A' ].has_output_variable( 'ta' ) )
         self.assertEqual( len( read_scenario.nodes[ 'A' ].output_ports ), 1 )
+        self.assertEqual( read_scenario.nodes[ 'A' ].sim_tool.name, 'toolA_' )
+        self.assertEqual( read_scenario.nodes[ 'A' ].sim_tool.model, 'modelA' )
+        self.assertEqual( read_scenario.nodes[ 'A' ].sim_tool.image, 'imageA' )
+        self.assertEqual( read_scenario.nodes[ 'A' ].sim_tool.wrapper, 'wrapperA' )
+        self.assertEqual( read_scenario.nodes[ 'A' ].sim_tool.files, [ 'fileA' ] )
 
         self.assertEqual( len( read_scenario.nodes[ 'B' ].input_ports ), 0 )
         self.assertTrue( read_scenario.nodes[ 'B' ].has_output_variable( 'tb' ) )
         self.assertEqual( len( read_scenario.nodes[ 'B' ].output_ports ), 1 )
+        self.assertEqual( read_scenario.nodes[ 'B' ].sim_tool.name, 'toolB_' )
+        self.assertEqual( read_scenario.nodes[ 'B' ].sim_tool.model, 'modelB' )
+        self.assertEqual( read_scenario.nodes[ 'B' ].sim_tool.image, 'imageB' )
+        self.assertEqual( read_scenario.nodes[ 'B' ].sim_tool.wrapper, 'wrapperB' )
+        self.assertEqual( read_scenario.nodes[ 'B' ].sim_tool.files, [ 'fileB1', 'fileB2' ] )
 
         self.assertTrue( read_scenario.nodes[ 'C' ].has_input_variable( 't1' ) )
         self.assertTrue( read_scenario.nodes[ 'C' ].has_input_variable( 't2' ) )
         self.assertEqual( len( read_scenario.nodes[ 'C' ].input_ports ), 2 )
         self.assertTrue( read_scenario.nodes[ 'C' ].has_output_variable( 'setc' ) )
         self.assertEqual( len( read_scenario.nodes[ 'C' ].output_ports ), 1 )
+        self.assertEqual( read_scenario.nodes[ 'C' ].sim_tool.name, 'toolC_' )
+        self.assertEqual( read_scenario.nodes[ 'C' ].sim_tool.model, 'modelC' )
+        self.assertEqual( read_scenario.nodes[ 'C' ].sim_tool.image, 'imageC' )
+        self.assertEqual( read_scenario.nodes[ 'C' ].sim_tool.wrapper, 'wrapperC' )
+        self.assertEqual( read_scenario.nodes[ 'C' ].sim_tool.command, 'commandC' )
 
         # Check links.
         self.assertEqual( read_scenario.links[ 'l1' ].output_port.node.node_name, 'A' )

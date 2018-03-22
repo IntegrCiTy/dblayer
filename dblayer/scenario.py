@@ -1,3 +1,52 @@
+
+class SimulationTool:
+    """
+    This class represents a simulation tool used in the co-simulation, including information on how it is used in this specific case (e.g., input files).
+    """
+
+    def __init__( self, name, model, image, wrapper, command = None, files = None ):
+        """
+        Constructor.
+
+        :param name: name of the simulation tool (str)
+        :param model: name of the model associated with the simulation tool (str)
+        :param image: docker image containing environments with all the simulation tool's dependencies (str)
+        :param wrapper: wrapper file for the simulation tool (str)
+        :param command: optional command to add (str)
+        :param files: optional files to add into the tool's docker container (list of str)
+        """
+        # Check if parameter 'name' is of correct type (str).
+        if not isinstance( name, str ):
+            raise TypeError( 'parameter \'name\' must be of type \'str\'' )
+
+        # Check if parameter 'model' is of correct type (str).
+        if not isinstance( model, str ):
+            raise TypeError( 'parameter \'model\' must be of type \'str\'' )
+
+        # Check if parameter 'image' is of correct type (str).
+        if not isinstance( image, str ):
+            raise TypeError( 'parameter \'image\' must be of type \'str\'' )
+
+        # Check if parameter 'wrapper' is of correct type (str).
+        if not isinstance( wrapper, str ):
+            raise TypeError( 'parameter \'wrapper\' must be of type \'str\'' )
+
+        # Check if parameter 'command' is of correct type (str).
+        if ( command is not None ) and not isinstance( command, str ):
+            raise TypeError( 'parameter \'command\' must be of type \'str\'' )
+
+        # Check if parameter 'files' is of correct type (list of str).
+        if ( files is not None ) and not ( isinstance( files, list ) and all( isinstance( elem, str ) for elem in files ) ):
+            raise TypeError( 'parameter \'files\' must be of type \'list of str\'' )
+
+        self.name = name
+        self.model = model
+        self.image = image
+        self.wrapper = wrapper
+        self.command = command
+        self.files = files
+
+
 class Port:
     """This is the subclass for input and output ports"""
 
@@ -38,24 +87,46 @@ class OutputPort(Port):
 
 class Node:
     """This class represents co-simulation nodes"""
-    
-    def __init__( self, node_name, input_variable_names = [], output_variable_names = [] ):
+
+    def __init__( self, node_name, sim_tool, input_variable_names = None, output_variable_names = None ):
         """
         Constructor.
 
         :param node_name: name of this node (str)
+        :param sim_tool: instance of simulation tool (SimulationTool)
         :param input_variable_names: names of input variables (list of str)
         :param output_variable_names: names of output variables (list of str)
         """
+        # Check if parameter 'node_name' is of correct type (str).
+        if not isinstance( node_name, str ):
+            raise TypeError( 'parameter \'node_name\' must be of type \'str\'' )
+
+        # Check if parameter 'input_variable_names' is of correct type (list of str).
+        if ( sim_tool is not None ) and not isinstance( sim_tool, SimulationTool ):
+            raise TypeError( 'parameter \'sim_tool\' must be of type \'SimulationTool\'' )
+
+        # Check if parameter 'input_variable_names' is of correct type (list of str).
+        if ( input_variable_names is not None ) and not ( isinstance( input_variable_names, list ) and all( isinstance( elem, str ) for elem in input_variable_names ) ):
+            raise TypeError( 'parameter \'input_variable_names\' must be of type \'list of str\'' )
+
+        # Check if parameter 'output_variable_names' is of correct type (list of str).
+        if ( output_variable_names is not None ) and not ( isinstance( output_variable_names, list ) and all( isinstance( elem, str ) for elem in output_variable_names ) ):
+            raise TypeError( 'parameter \'output_variable_names\' must be of type \'list of str\'' )
+
         # Define name.
         self.node_name = node_name
-        
+
+        # Initialize simulation tool.
+        self.sim_tool = sim_tool
+
         # Initialize dicts of input ports.
         self.input_ports = {}
-        self.add_input_ports( input_variable_names )
+        if input_variable_names is not None:
+            self.add_input_ports( input_variable_names )
         # Initialize dicts of outputs ports.
         self.output_ports = {}
-        self.add_output_ports( output_variable_names )
+        if output_variable_names is not None:
+            self.add_output_ports( output_variable_names )
 
 
     def add_input_ports( self, input_variable_names ):
@@ -116,7 +187,7 @@ class Node:
         # Create and add new output port.
         p = OutputPort( output_variable_name, self )
         self.output_ports[ output_variable_name ] = p
-            
+
 
     def has_input_variable( self, input_variable_name ):
         """
@@ -166,7 +237,6 @@ class Node:
             err_msg = "node '{0}' has no output port assciated to '{1}'"
             raise RuntimeError( err_msg.format( self.node_name, output_variable_name ) )
         return self.output_ports[ output_variable_name ]
-
 
 
 class Link:
@@ -241,7 +311,7 @@ class Scenario:
 
         # Define name.
         self.scenario_name = scenario_name
-        
+
         # Initialize empty lists for nodes and links.
         self.nodes = {}
         self.links = {}
@@ -319,16 +389,17 @@ class Scenario:
         for n in nodes: self.add_node( n )
 
 
-    def create_and_add_node( self, node_name, input_variable_names = [], output_variable_names = [] ):
+    def create_and_add_node( self, node_name, sim_tool, input_variable_names = None, output_variable_names = None ):
         """
         Create a new node and add it to the scenario. Returns the new node.
 
         :param node_name: name of new node (str)
+        :param sim_tool: instance of simulation tool (SimulationTool)
         :param input_variable_names: names of input variables (list of str)
         :param output_variable_names: names of output variables (list of str)
         """
         # Create a new node.
-        new_node = Node( node_name, input_variable_names, output_variable_names )
+        new_node = Node( node_name, sim_tool, input_variable_names, output_variable_names )
 
         # Add node to scenario.
         self.add_node( new_node )
@@ -376,6 +447,9 @@ class Scenario:
 
         :param links: links to be added (list of Link)
         """
+        if not ( isinstance( links, list ) and all( isinstance( elem, Link ) for elem in links ) ):
+            raise TypeError( 'parameter \'links\' must be of type \'list of Link\'' )
+
         for l in links: self.add_link( l )
 
 

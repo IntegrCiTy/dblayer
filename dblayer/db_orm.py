@@ -13,6 +13,14 @@ class Simulation( object ):
         self.name = name
 
 
+class SimulationTool( object ):
+    """
+    Define class for retrieving data from table 'sim_pkg.tool'.
+    """
+    def __init__( self, name ):
+        self.name = name
+
+
 class Node( object ):
     """
     Define class for retrieving data from table 'sim_pkg.node'.
@@ -24,6 +32,14 @@ class Node( object ):
 class PortConnectionExt( object ):
     """
     Define class for retrieving data from view 'sim_pkg.port_connection_ext'.
+    """
+    def __init__( self, name ):
+        self.name = name
+
+
+class GenericParameterTool( object ):
+    """
+    Define class for retrieving data from view 'sim_pkg.generic_parameter_tool'.
     """
     def __init__( self, name ):
         self.name = name
@@ -48,6 +64,14 @@ def init_orm( engine ):
             schema = 'sim_pkg'
             )
 
+        # Describe table 'sim_pkg.tool'.
+        table_simulation_tool = Table(
+            'tool',
+            metadata,
+            autoload = True,
+            schema = 'sim_pkg'
+            )
+
         # Describe table 'sim_pkg.node'.
         table_node = Table(
             'node',
@@ -65,10 +89,21 @@ def init_orm( engine ):
             schema = 'sim_pkg'
             )
 
+        # Describe view 'sim_pkg.generic_parameter_tool'.
+        view_generic_parameter_tool = Table(
+            'generic_parameter_tool',
+            metadata,
+            Column( 'id', Integer, primary_key = True ),
+            autoload = True,
+            schema = 'sim_pkg'
+            )
+
     # Map tables and views to classes.
     mapper( Simulation, table_simulation )
+    mapper( SimulationTool, table_simulation_tool )
     mapper( Node, table_node )
     mapper( PortConnectionExt, view_port_connection_ext )
+    mapper( GenericParameterTool, view_generic_parameter_tool )
 
 
 def cleanup_orm():
