@@ -9,15 +9,15 @@ def func_cleanup_schema():
     return func.sim_pkg.cleanup_schema().execution_options( autocommit = True )
 
 
-def func_insert_simulation( scenario ):
+def func_insert_simulation( sim_name ):
     """
-    Define function call to insert simulation to database.
+    Define function call to insert simulation into the database.
     """
     return func.sim_pkg.insert_simulation(
         None, # id (integer)
         None, # gmlid (character varying)
         None, # gmlid_codespace (character varying)
-        scenario.scenario_name, # name (character varying)
+        sim_name, # name (character varying)
         None, # name_codespace (character varying)
         None, # description (text)
         None, # time_start (timestamp with time zone)
@@ -29,9 +29,9 @@ def func_insert_simulation( scenario ):
         )
 
 
-def func_insert_node( sim_id, tool_id, node, template_node_id = None ):
+def func_insert_node( node_name, sim_id, tool_id, template_node_id = None ):
     """
-    Define function call to insert node to database.
+    Define function call to insert node into the database.
     """
     if not isinstance( sim_id, int ):
         raise TypeError( 'parameter \'sim_id\' must be of type \'int\'' )
@@ -48,17 +48,38 @@ def func_insert_node( sim_id, tool_id, node, template_node_id = None ):
         template_node_id, # parent_id (integer)
         None, # gmlid (varchar)
         None, # gmlid_codespace (varchar)
-        node.node_name, # name (character varying)
+        node_name, # name (character varying)
         None, # name_codespace (character varying)
         None, # description (text)
         None, # cityobject_id (integer)
         tool_id # tool_id (integer)
         )
 
+        
+def func_insert_node_template( node_name ):
+    """
+    Define function call to insert a template node into the database.
+    """
+    if not isinstance( node_name, str ):
+        raise TypeError( 'parameter \'node_name\' must be of type \'str\'' )
+
+    return func.sim_pkg.insert_node_template(
+        None, # simulation_id (integer)
+        None, # id (integer)
+        None, # parent_id (integer)
+        None, # gmlid (varchar)
+        None, # gmlid_codespace (varchar)
+        node_name, # name (character varying)
+        None, # name_codespace (character varying)
+        None, # description (text)
+        None, # cityobject_id (integer)
+        None # tool_id (integer)
+        )
+
 
 def func_insert_port( node_id, type, port_name ):
     """
-    Define function call to insert input port to database.
+    Define function call to insert input port into the database.
     """
     if not isinstance( node_id, int ):
         raise TypeError( 'parameter \'node_id\' must be of type \'int\'' )
@@ -80,7 +101,7 @@ def func_insert_port( node_id, type, port_name ):
 
 def func_insert_port_connection( sim_id, link_name, from_port_id, to_port_id ):
     """
-    Define function call to insert link to database.
+    Define function call to insert link into the database.
     """
     if not isinstance( sim_id, int ):
         raise TypeError( 'parameter \'sim_id\' must be of type \'int\'' )
@@ -109,7 +130,7 @@ def func_insert_port_connection( sim_id, link_name, from_port_id, to_port_id ):
 
 def func_insert_tool( name ):
     """
-    Define function call to insert simulation tool to database.
+    Define function call to insert simulation tool into the database.
     """
     if not isinstance( name, str ):
         raise TypeError( 'parameter \'name\' must be of type \'str\'' )
@@ -134,7 +155,7 @@ def func_insert_tool( name ):
 
 def func_insert_real_parameter_tool( tool_id, name, value, unit = None ):
     """
-    Define function call to insert real parameter associated to simulation tool into database.
+    Define function call to insert real parameter associated to simulation tool into the database.
     """
     if not isinstance( tool_id, int ):
         raise TypeError( 'parameter \'tool_id\' must be of type \'int\'' )
@@ -150,9 +171,15 @@ def func_insert_real_parameter_tool( tool_id, name, value, unit = None ):
 
     return func.sim_pkg.insert_generic_parameter(
         name, # name (character varying)
+        None, # is_init_parameter boolean
         None, # id (integer)
         None, # name_codespace (character varying)
         None, # description (text)
+        None, # citydb_table_name (character varying)
+        None, # citydb_object_id (integer)
+        None, # citydb_column_name (character)
+        None, # citydb_genericattrib_name (character varying)
+        None, # citydb_function (character varying)
         None, # strval (character varying)
         None, # intval (integer)
         value, # realval (numeric)
@@ -168,7 +195,7 @@ def func_insert_real_parameter_tool( tool_id, name, value, unit = None ):
 
 def func_insert_integer_parameter_tool( tool_id, name, value, unit = None ):
     """
-    Define function call to insert integer parameter associated to simulation tool into database.
+    Define function call to insert integer parameter associated to simulation tool into the database.
     """
     if not isinstance( tool_id, int ):
         raise TypeError( 'parameter \'tool_id\' must be of type \'int\'' )
@@ -184,9 +211,15 @@ def func_insert_integer_parameter_tool( tool_id, name, value, unit = None ):
 
     return func.sim_pkg.insert_generic_parameter(
         name, # name (character varying)
+        None, # is_init_parameter boolean
         None, # id (integer)
         None, # name_codespace (character varying)
         None, # description (text)
+        None, # citydb_table_name (character varying)
+        None, # citydb_object_id (integer)
+        None, # citydb_column_name (character)
+        None, # citydb_genericattrib_name (character varying)
+        None, # citydb_function (character varying)
         None, # strval (character varying)
         value, # intval (integer)
         None, # realval (numeric)
@@ -202,7 +235,7 @@ def func_insert_integer_parameter_tool( tool_id, name, value, unit = None ):
 
 def func_insert_string_parameter_tool( tool_id, name, value ):
     """
-    Define function call to insert string parameter associated to simulation tool into database.
+    Define function call to insert string parameter associated to simulation tool into the database.
     """
     if not isinstance( tool_id, int ):
         raise TypeError( 'parameter \'tool_id\' must be of type \'int\'' )
@@ -215,9 +248,15 @@ def func_insert_string_parameter_tool( tool_id, name, value ):
 
     return func.sim_pkg.insert_generic_parameter(
         name, # name (character varying)
+        None, # is_init_parameter boolean
         None, # id (integer)
         None, # name_codespace (character varying)
         None, # description (text)
+        None, # citydb_table_name (character varying)
+        None, # citydb_object_id (integer)
+        None, # citydb_column_name (character)
+        None, # citydb_genericattrib_name (character varying)
+        None, # citydb_function (character varying)
         value, # strval (character)
         None, # intval (integer)
         None, # realval (numeric)
@@ -233,7 +272,7 @@ def func_insert_string_parameter_tool( tool_id, name, value ):
 
 def func_insert_array_parameter_tool( tool_id, name, value, unit = None ):
     """
-    Define function call to insert array parameter associated to simulation tool into database.
+    Define function call to insert array parameter associated to simulation tool into the database.
     """
     if not isinstance( tool_id, int ):
         raise TypeError( 'parameter \'tool_id\' must be of type \'int\'' )
@@ -249,9 +288,15 @@ def func_insert_array_parameter_tool( tool_id, name, value, unit = None ):
 
     return func.sim_pkg.insert_generic_parameter(
         name, # name (character varying)
+        None, # is_init_parameter boolean
         None, # id (integer)
         None, # name_codespace (character varying)
         None, # description (text)
+        None, # citydb_table_name (character varying)
+        None, # citydb_object_id (integer)
+        None, # citydb_column_name (character)
+        None, # citydb_genericattrib_name (character varying)
+        None, # citydb_function (character varying)
         None, # strval (character varying)
         None, # intval (integer)
         None, # realval (numeric)
@@ -262,4 +307,391 @@ def func_insert_array_parameter_tool( tool_id, name, value, unit = None ):
         tool_id, # tool_id (integer)
         None, # node_id (integer)
         None, # simulation_id (integer)
+        )
+
+
+def func_insert_real_parameter_node( node_id, name, value, unit = None ):
+    """
+    Define function call to insert real parameter associated to node into the database.
+    """
+    if not isinstance( node_id, int ):
+        raise TypeError( 'parameter \'node_id\' must be of type \'int\'' )
+
+    if not isinstance( name, str ):
+        raise TypeError( 'parameter \'name\' must be of type \'str\'' )
+
+    if not isinstance( value, float ):
+        raise TypeError( 'parameter \'value\' must be of type \'float\'' )
+
+    if unit is not None and not isinstance( unit, str ):
+        raise TypeError( 'parameter \'unit\' must be of type \'str\'' )
+
+    return func.sim_pkg.insert_generic_parameter(
+        name, # name (character varying)
+        None, # is_init_parameter boolean
+        None, # id (integer)
+        None, # name_codespace (character varying)
+        None, # description (text)
+        None, # citydb_table_name (character varying)
+        None, # citydb_object_id (integer)
+        None, # citydb_column_name (character)
+        None, # citydb_genericattrib_name (character varying)
+        None, # citydb_function (character varying)
+        None, # strval (character varying)
+        None, # intval (integer)
+        value, # realval (numeric)
+        None, # arrayval (numeric[])
+        None, # urival (character varying)
+        None, # dateval (timestamp with time zone)
+        unit, # unit (character varying)
+        None, # tool_id (integer)
+        node_id, # node_id (integer)
+        None, # simulation_id (integer)
+        )
+
+
+def func_insert_integer_parameter_node( node_id, name, value, unit = None ):
+    """
+    Define function call to insert integer parameter associated to node into the database.
+    """
+    if not isinstance( node_id, int ):
+        raise TypeError( 'parameter \'node_id\' must be of type \'int\'' )
+
+    if not isinstance( name, str ):
+        raise TypeError( 'parameter \'name\' must be of type \'str\'' )
+
+    if not isinstance( value, int ):
+        raise TypeError( 'parameter \'value\' must be of type \'int\'' )
+
+    if unit is not None and not isinstance( unit, str ):
+        raise TypeError( 'parameter \'unit\' must be of type \'str\'' )
+
+    return func.sim_pkg.insert_generic_parameter(
+        name, # name (character varying)
+        None, # is_init_parameter boolean
+        None, # id (integer)
+        None, # name_codespace (character varying)
+        None, # description (text)
+        None, # citydb_table_name (character varying)
+        None, # citydb_object_id (integer)
+        None, # citydb_column_name (character)
+        None, # citydb_genericattrib_name (character varying)
+        None, # citydb_function (character varying)
+        None, # strval (character varying)
+        value, # intval (integer)
+        None, # realval (numeric)
+        None, # arrayval (numeric[])
+        None, # urival (character varying)
+        None, # dateval (timestamp with time zone)
+        unit, # unit (character varying)
+        None, # tool_id (integer)
+        node_id, # node_id (integer)
+        None, # simulation_id (integer)
+        )
+
+
+def func_insert_string_parameter_node( node_id, name, value ):
+    """
+    Define function call to insert string parameter associated to node into the database.
+    """
+    if not isinstance( node_id, int ):
+        raise TypeError( 'parameter \'node_id\' must be of type \'int\'' )
+
+    if not isinstance( name, str ):
+        raise TypeError( 'parameter \'name\' must be of type \'str\'' )
+
+    if not isinstance( value, str ):
+        raise TypeError( 'parameter \'value\' must be of type \'str\'' )
+
+    return func.sim_pkg.insert_generic_parameter(
+        name, # name (character varying)
+        None, # is_init_parameter boolean
+        None, # id (integer)
+        None, # name_codespace (character varying)
+        None, # description (text)
+        None, # citydb_table_name (character varying)
+        None, # citydb_object_id (integer)
+        None, # citydb_column_name (character)
+        None, # citydb_genericattrib_name (character varying)
+        None, # citydb_function (character varying)
+        value, # strval (character)
+        None, # intval (integer)
+        None, # realval (numeric)
+        None, # arrayval (numeric[])
+        None, # urival (character varying)
+        None, # dateval (timestamp with time zone)
+        None, # unit (character varying)
+        None, # tool_id (integer)
+        node_id, # node_id (integer)
+        None, # simulation_id (integer)
+        )
+
+
+def func_insert_array_parameter_node( node_id, name, value, unit = None ):
+    """
+    Define function call to insert array parameter associated to node into the database.
+    """
+    if not isinstance( node_id, int ):
+        raise TypeError( 'parameter \'node_id\' must be of type \'int\'' )
+
+    if not isinstance( name, str ):
+        raise TypeError( 'parameter \'name\' must be of type \'str\'' )
+
+    if not ( isinstance( value, list ) and all( isinstance( elem, float ) for elem in value ) ):
+        raise TypeError( 'parameter \'value\' must be of type \'list of float\'' )
+
+    if unit is not None and not isinstance( unit, str ):
+        raise TypeError( 'parameter \'unit\' must be of type \'str\'' )
+
+    return func.sim_pkg.insert_generic_parameter(
+        name, # name (character varying)
+        None, # is_init_parameter boolean
+        None, # id (integer)
+        None, # name_codespace (character varying)
+        None, # description (text)
+        None, # citydb_table_name (character varying)
+        None, # citydb_object_id (integer)
+        None, # citydb_column_name (character)
+        None, # citydb_genericattrib_name (character varying)
+        None, # citydb_function (character varying)
+        None, # strval (character varying)
+        None, # intval (integer)
+        None, # realval (numeric)
+        value, # arrayval (numeric[])
+        None, # urival (character varying)
+        None, # dateval (timestamp with time zone)
+        unit, # unit (character varying)
+        None, # tool_id (integer)
+        node_id, # node_id (integer)
+        None, # simulation_id (integer)
+        )
+
+
+def func_insert_real_init_val_node( node_id, name, value, unit = None ):
+    """
+    Define function call to insert real parameter associated to node into the database.
+    """
+    if not isinstance( node_id, int ):
+        raise TypeError( 'parameter \'node_id\' must be of type \'int\'' )
+
+    if not isinstance( name, str ):
+        raise TypeError( 'parameter \'name\' must be of type \'str\'' )
+
+    if not isinstance( value, float ):
+        raise TypeError( 'parameter \'value\' must be of type \'float\'' )
+
+    if unit is not None and not isinstance( unit, str ):
+        raise TypeError( 'parameter \'unit\' must be of type \'str\'' )
+
+    return func.sim_pkg.insert_generic_parameter_init(
+        name, # name (character varying)
+        None, # id (integer)
+        None, # name_codespace (character varying)
+        None, # description (text)
+        None, # citydb_table_name (character varying)
+        None, # citydb_object_id (integer)
+        None, # citydb_column_name (character)
+        None, # citydb_genericattrib_name (character varying)
+        None, # citydb_function (character varying)
+        None, # strval (character varying)
+        None, # intval (integer)
+        value, # realval (numeric)
+        None, # arrayval (numeric[])
+        None, # urival (character varying)
+        None, # dateval (timestamp with time zone)
+        unit, # unit (character varying)
+        None, # tool_id (integer)
+        node_id, # node_id (integer)
+        None, # simulation_id (integer)
+        )
+
+
+def func_insert_integer_init_val_node( node_id, name, value, unit = None ):
+    """
+    Define function call to insert integer parameter associated to node into the database.
+    """
+    if not isinstance( node_id, int ):
+        raise TypeError( 'parameter \'node_id\' must be of type \'int\'' )
+
+    if not isinstance( name, str ):
+        raise TypeError( 'parameter \'name\' must be of type \'str\'' )
+
+    if not isinstance( value, int ):
+        raise TypeError( 'parameter \'value\' must be of type \'int\'' )
+
+    if unit is not None and not isinstance( unit, str ):
+        raise TypeError( 'parameter \'unit\' must be of type \'str\'' )
+
+    return func.sim_pkg.insert_generic_parameter_init(
+        name, # name (character varying)
+        None, # id (integer)
+        None, # name_codespace (character varying)
+        None, # description (text)
+        None, # citydb_table_name (character varying)
+        None, # citydb_object_id (integer)
+        None, # citydb_column_name (character)
+        None, # citydb_genericattrib_name (character varying)
+        None, # citydb_function (character varying)
+        None, # strval (character varying)
+        value, # intval (integer)
+        None, # realval (numeric)
+        None, # arrayval (numeric[])
+        None, # urival (character varying)
+        None, # dateval (timestamp with time zone)
+        unit, # unit (character varying)
+        None, # tool_id (integer)
+        node_id, # node_id (integer)
+        None, # simulation_id (integer)
+        )
+
+
+def func_insert_string_init_val_node( node_id, name, value ):
+    """
+    Define function call to insert string parameter associated to node into the database.
+    """
+    if not isinstance( node_id, int ):
+        raise TypeError( 'parameter \'node_id\' must be of type \'int\'' )
+
+    if not isinstance( name, str ):
+        raise TypeError( 'parameter \'name\' must be of type \'str\'' )
+
+    if not isinstance( value, str ):
+        raise TypeError( 'parameter \'value\' must be of type \'str\'' )
+
+    return func.sim_pkg.insert_generic_parameter(
+        name, # name (character varying)
+        None, # id (integer)
+        None, # name_codespace (character varying)
+        None, # description (text)
+        None, # citydb_table_name (character varying)
+        None, # citydb_object_id (integer)
+        None, # citydb_column_name (character)
+        None, # citydb_genericattrib_name (character varying)
+        None, # citydb_function (character varying)
+        value, # strval (character)
+        None, # intval (integer)
+        None, # realval (numeric)
+        None, # arrayval (numeric[])
+        None, # urival (character varying)
+        None, # dateval (timestamp with time zone)
+        None, # unit (character varying)
+        None, # tool_id (integer)
+        node_id, # node_id (integer)
+        None, # simulation_id (integer)
+        )
+
+
+def func_insert_array_init_val_node( node_id, name, value, unit = None ):
+    """
+    Define function call to insert array parameter associated to node into the database.
+    """
+    if not isinstance( node_id, int ):
+        raise TypeError( 'parameter \'node_id\' must be of type \'int\'' )
+
+    if not isinstance( name, str ):
+        raise TypeError( 'parameter \'name\' must be of type \'str\'' )
+
+    if not ( isinstance( value, list ) and all( isinstance( elem, float ) for elem in value ) ):
+        raise TypeError( 'parameter \'value\' must be of type \'list of float\'' )
+
+    if unit is not None and not isinstance( unit, str ):
+        raise TypeError( 'parameter \'unit\' must be of type \'str\'' )
+
+    return func.sim_pkg.insert_generic_parameter_init(
+        name, # name (character varying)
+        None, # id (integer)
+        None, # name_codespace (character varying)
+        None, # description (text)
+        None, # citydb_table_name (character varying)
+        None, # citydb_object_id (integer)
+        None, # citydb_column_name (character)
+        None, # citydb_genericattrib_name (character varying)
+        None, # citydb_function (character varying)
+        None, # strval (character varying)
+        None, # intval (integer)
+        None, # realval (numeric)
+        value, # arrayval (numeric[])
+        None, # urival (character varying)
+        None, # dateval (timestamp with time zone)
+        unit, # unit (character varying)
+        None, # tool_id (integer)
+        node_id, # node_id (integer)
+        None, # simulation_id (integer)
+        )
+
+
+def func_insert_string_parameter_simulation( sim_id, name, value ):
+    """
+    Define function call to insert string parameter associated to simulation into the database.
+    """
+    if not isinstance( sim_id, int ):
+        raise TypeError( 'parameter \'sim_id\' must be of type \'int\'' )
+
+    if not isinstance( name, str ):
+        raise TypeError( 'parameter \'name\' must be of type \'str\'' )
+
+    if not isinstance( value, str ):
+        raise TypeError( 'parameter \'value\' must be of type \'str\'' )
+
+    return func.sim_pkg.insert_generic_parameter(
+        name, # name (character varying)
+        None, # is_init_parameter boolean
+        None, # id (integer)
+        None, # name_codespace (character varying)
+        None, # description (text)
+        None, # citydb_table_name (character varying)
+        None, # citydb_object_id (integer)
+        None, # citydb_column_name (character)
+        None, # citydb_genericattrib_name (character varying)
+        None, # citydb_function (character varying)
+        value, # strval (character)
+        None, # intval (integer)
+        None, # realval (numeric)
+        None, # arrayval (numeric[])
+        None, # urival (character varying)
+        None, # dateval (timestamp with time zone)
+        None, # unit (character varying)
+        None, # tool_id (integer)
+        None, # node_id (integer)
+        sim_id, # simulation_id (integer)
+        )
+
+
+def func_insert_array_parameter_simulation( sim_id, name, value, unit = None ):
+    """
+    Define function call to insert array parameter associated to node into the database.
+    """
+    if not isinstance( sim_id, int ):
+        raise TypeError( 'parameter \'sim_id\' must be of type \'int\'' )
+
+    if not isinstance( name, str ):
+        raise TypeError( 'parameter \'name\' must be of type \'str\'' )
+
+    if not ( isinstance( value, list ) and ( all( isinstance( elem, float ) for elem in value ) or all( isinstance( elem, int ) for elem in value ) ) ):
+        raise TypeError( 'parameter \'value\' must be of type \'list of float\' or \'list of int\'' )
+
+    if unit is not None and not isinstance( unit, str ):
+        raise TypeError( 'parameter \'unit\' must be of type \'str\'' )
+
+    return func.sim_pkg.insert_generic_parameter(
+        name, # name (character varying)
+        None, # is_init_parameter boolean
+        None, # id (integer)
+        None, # name_codespace (character varying)
+        None, # description (text)
+        None, # citydb_table_name (character varying)
+        None, # citydb_object_id (integer)
+        None, # citydb_column_name (character)
+        None, # citydb_genericattrib_name (character varying)
+        None, # citydb_function (character varying)
+        None, # strval (character varying)
+        None, # intval (integer)
+        None, # realval (numeric)
+        value, # arrayval (numeric[])
+        None, # urival (character varying)
+        None, # dateval (timestamp with time zone)
+        unit, # unit (character varying)
+        None, # tool_id (integer)
+        None, # node_id (integer)
+        sim_id, # simulation_id (integer)
         )
