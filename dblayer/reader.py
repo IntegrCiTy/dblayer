@@ -1,5 +1,5 @@
 from .access import *
-from .db_func import *
+from .simpkg_func import *
 
 import ictdeploy
 
@@ -13,45 +13,41 @@ class DBReader( DBAccess ):
     Requires the Simulation Package schema to be installed.
     """
 
-    def __init__( self ):
+    def __init__( self, connect ):
         """
         Constructor.
+        
+        :param connect: tuple containing connection parameters for database (PostgreSQLConnectionInfo)
         """
         super().__init__()
         self._reset()
+        self.connect_to_citydb( connect )
 
 
-    def read_from_db( self, sim_name, connect ):
+    def read_from_db( self, sim_name ):
         """
         Read scenario from database. Requires SimulationPackage schema to be installed. Returns a new schema.
 
         :param sim_name: name used to identify this simulation setup in the database (str)
-        :param connect: tuple containing connection parameters for database (PostgreSQLConnectionInfo)
         :return; simulation setup (ictdeploy.Simulator)
         """
-        # Connect to database.
-        engine, session = self.connect_to_db( connect )
-
         # Initialize object relational mapper.
-        self.init_orm( engine )
+        self._init_simpkg_orm()
 
         # Reset internal dicts.
         self._reset()
 
         # Start session.
-        s = session()
+        if self.current_session is None: self.start_citydb_session()
 
         # Create simulation setup.
         self.sim = ictdeploy.Simulator()
 
         # Retrieve data from database.
-        self._retrieve_simulation_from_db( sim_name, s )
-        self._retrieve_nodes_from_db( s )
-        self._retrieve_model_and_meta_models_from_db( s )
-        self._retrieve_links_from_db( s )
-
-        # Clean-up this session.
-        session.close_all()
+        self._retrieve_simulation_from_db( sim_name )
+        self._retrieve_nodes_from_db()
+        self._retrieve_model_and_meta_models_from_db()
+        self._retrieve_links_from_db()
 
         # Create simulation setup.
         self._add_meta_models()
@@ -78,19 +74,19 @@ class DBReader( DBAccess ):
         self.meta_model_attributes = {}
 
 
-    def _retrieve_simulation_from_db( self, sim_name, session ):
+    def _retrieve_simulation_from_db( self, sim_name ):
         # Retrieve the simulation ID.
-        sim_query = session.query( Simulation ).filter_by( name = sim_name ).one()
+        sim_query = self.current_session.query( Simulation ).filter_by( name = sim_name ).one()
         self.sim_id = sim_query.id
 
         # Retrieve generic parameters assciated to simulation.
-        parameters = session.query( GenericParameterSimulation ).filter_by( simulation_id = self.sim_id ).all()
+        parameters = self.current_session.query( GenericParameterSimulation ).filter_by( simulation_id = self.sim_id ).all()
         self.simulation_parameters = self._retrieve_generic_parameters( parameters )
 
 
-    def _retrieve_nodes_from_db( self, session ):
+    def _retrieve_nodes_from_db( self ):
         # Retrieve nodes of the simulation configuration.
-        nodes = session.query( Node ).filter(
+        nodes = self.current_session.query( Node ).filter(
             and_(
                 Node.simulation_id == self.sim_id,
                 Node.is_template == False )
@@ -99,19 +95,29 @@ class DBReader( DBAccess ):
 
         for node_name, node in self.nodes.items():
             # Retrieve generic parameters assciated to node.
-            parameters = session.query( GenericParameterNode ).filter( and_( GenericParameterNode.node_id == node.id, GenericParameterNode.is_init_parameter == False ) ).all()
+            parameters = self.current_session.query( GenericParameterNode ).filter(
+                and_(
+                    GenericParameterNode.node_id == node.id,
+                    GenericParameterNode.is_init_parameter == False
+                )
+            ).all()
             self.node_parameters[ node.name ] = self._retrieve_generic_parameters( parameters )
 
             # Retrieve initial values assciated to node.
-            init_values = session.query( GenericParameterNode ).filter( and_( GenericParameterNode.node_id == node.id, GenericParameterNode.is_init_parameter == True ) ).all()
+            init_values = self.current_session.query( GenericParameterNode ).filter(
+                and_(
+                    GenericParameterNode.node_id == node.id,
+                    GenericParameterNode.is_init_parameter == True
+                )
+            ).all()
             self.node_init_values[ node.name ] = self._retrieve_generic_parameters( init_values )
 
 
-    def _retrieve_model_and_meta_models_from_db( self, session ):
+    def _retrieve_model_and_meta_models_from_db( self ):
         for node_name, node in self.nodes.items():
             # Retrieve model associated to node (stored as SimulationTool).
             model_id = node.tool_id
-            model = session.query( SimulationTool ).filter_by( id = model_id ).one()
+            model = self.current_session.query( SimulationTool ).filter_by( id = model_id ).one()
 
             # Store model name in node object.
             node.model = model.name
@@ -121,7 +127,7 @@ class DBReader( DBAccess ):
                 self.models[ model.name ] = model
 
                 # Retrieve model parameters
-                parameters = session.query( GenericParameterTool ).filter_by( tool_id = model_id ).all()
+                parameters = self.current_session.query( GenericParameterTool ).filter_by( tool_id = model_id ).all()
                 self.model_parameters[ model.name ] = self._retrieve_generic_parameters( parameters )
 
                 # Get associated meta model name.
@@ -130,17 +136,22 @@ class DBReader( DBAccess ):
                 # Check if meta model has been retrieved before.
                 if meta_model_name not in self.meta_models:
                     # Retrieve meta model.
-                    meta_model = session.query( Node ).filter( and_( Node.name == meta_model_name, Node.is_template == True ) ).one()
+                    meta_model = self.current_session.query( Node ).filter(
+                        and_( 
+                            Node.name == meta_model_name, 
+                            Node.is_template == True 
+                        )
+                    ).one()
 
                     # Retrieve attributes (inputs/outputs) of meta model.
-                    attributes = session.query( Port ).filter_by( node_id = meta_model.id ).all()
+                    attributes = self.current_session.query( Port ).filter_by( node_id = meta_model.id ).all()
 
                     self.meta_models[ meta_model_name ] = meta_model
                     self.meta_model_attributes[ meta_model_name ] = attributes
 
 
-    def _retrieve_links_from_db( self, session ):
-        links = session.query( PortConnectionExt ).filter_by( simulation_id = self.sim_id ).all()
+    def _retrieve_links_from_db( self ):
+        links = self.current_session.query( PortConnectionExt ).filter_by( simulation_id = self.sim_id ).all()
         self.links = dict( [ ( l.name, l ) for l in links ] )
 
 

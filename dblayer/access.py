@@ -1,4 +1,4 @@
-from .db_orm import *
+from .simpkg_orm import *
 
 from collections import namedtuple
 
@@ -9,6 +9,7 @@ from sqlalchemy import MetaData, Table, Column, Integer
 from sqlalchemy import exc as sa_exc
 from sqlalchemy.sql import select
 from sqlalchemy.orm import Session, sessionmaker, mapper
+from sqlalchemy.sql.functions import Function as SQLFunction
 
 import psycopg2
 
@@ -16,23 +17,39 @@ import psycopg2
 PostgreSQLConnectionInfo = namedtuple( 'PostgreSQLConnectionInfo', [ 'user', 'pwd', 'host', 'port', 'dbname' ] )
 
 
+MappedClassInfo = namedtuple( 'MappedClassInfo', [ 'impl', 'schema', 'tablename' ] )
+
+
 class DBAccess:
     """
     Base class for accessing the database.
     """
 
-    # Static flag to check whether ORM mapping has already been done.
-    orm_mapping_done = False
+    # Flag to check whether ORM mapping for the Simulation Package has already been done.
+    simpkg_orm_mapping_init = False
+
+    # Flag to check whether ORM mapping for the CityDB has already been initialized.
+    citydb_orm_mapping_init = False
+
+    # List of all classes in 3dCityDB (to be retrieved from CityDB).
+    citydb_objectclass_list = {}
+
+    # List of mapped classes from 3DCityDB.
+    citydb_objectclass_map = {}
+
 
     def __init__( self ):
-        pass
+        self.engine = None
+        self.session = None
+        self.current_session = None
+        self.connection_info = None
 
-    def connect_to_db( self, connection_info ):
+
+    def connect_to_citydb( self, connection_info ):
         """
         Connect to the database by initializing an engine and a session.
 
-        :param connect: tuple containing connection parameters for database (PostgreSQLConnectionInfo)
-        :return: database engine and session (sqlalchemy.engine.Engine, sqlalchemy.orm.session.Session)
+        :return: none
         """
         if not isinstance( connection_info, PostgreSQLConnectionInfo ):
             raise TypeError( 'parameter \'connection_info\' must be of type \'PostgreSQLConnectionInfo\'' )
@@ -54,28 +71,269 @@ class DBAccess:
             raise RuntimeError( err_msg )
 
         # Connect to database.
-        engine = create_engine( db_connection_string )
+        self.engine = create_engine( db_connection_string )
 
         # Create session.
-        session = sessionmaker( bind = engine )
+        self.session = sessionmaker( bind = self.engine )
 
-        return engine, session
+        # Save database connection information.
+        self.connection_info = connection_info
 
 
-    def init_orm( self, engine ):
+    def start_citydb_session( self ):
         """
-        Initialize the object relational mapping of the database.
+        Start a new database session.
+
+        :return: none
         """
-        # Check if mapping has already been done.
-        if DBAccess.orm_mapping_done is True:
+        if self.engine is None or self.session is None:
+            raise RuntimeError( 'not connected to database' )
+        
+        # Start a new session.
+        self.current_session = self.session()
+
+
+    def commit_citydb_session( self ):
+        """
+        Commit changes of the current session to the database.
+
+        :return: none
+        """
+        if self.current_session is not None: self.current_session.commit()
+
+
+    def add_citydb_object( self, func, **args ):
+        """
+        Add a new object to the database.
+
+        :param func: inserter function (sqlalchemy.sql.functions.Function)
+        :return: returns the scalar return value of the inserter function (typically an object-specific ID)
+        """
+        # Check if parameter 'func' is a callable object (function)
+        if not callable( func ):
+            raise TypeError( 'parameter \'func\' must be a function returning type \'sqlalchemy.sql.functions.Function\'' )
+
+        # Start new session if necessary.
+        if self.current_session is None: self.start_citydb_session()
+
+        # Retrieve inserter function.
+        inserter_func = func( **args )
+
+        # Check if 'inserter_func' is a function of type 'sqlalchemy.sql.functions.Function'
+        if not isinstance( inserter_func, SQLFunction ):
+            raise TypeError( 'parameter \'func\' must be a function returning type \'sqlalchemy.sql.functions.Function\'' )
+
+        return self.current_session.query( inserter_func ).one()[0]
+
+
+    def get_citydb_objects( self, classname, tablename = None, schema = None, conditions = None ):
+        # Retrieve mapped class representing the object.
+        ObjectClass = self.map_citydb_object_class( classname, tablename, schema )
+
+        # Start a new database session if necessary.
+        if self.current_session is None: self.start_citydb_session()
+
+        # Retrieve class info.
+        class_info = DBAccess.citydb_objectclass_list[ classname ]
+
+        if conditions is None: conditions = []
+
+        if not class_info.id is None:
+            try:
+                # In case the mapped class has an attribute called 'objectclass_id', set it
+                # to the according value retrieved from table 'citydb.objectclass'. This is
+                # required when retrieving objects from tables that store more than one type
+                # of object (with the different types distinguished using 'objectclass_id').
+                conditions.append( ObjectClass.objectclass_id == class_info.id )
+            except AttributeError:
+                # The object does not have an attribute called 'objectclass_id' (because the
+                # according table does not have it). No need to worry, just ignore it ...
+                pass
+
+        filter_conditions = and_( *conditions )
+
+        return self.current_session.query( ObjectClass ).filter( filter_conditions ).all()
+
+
+    def cleanup_simpkg_schema( self ):
+        """
+        Clean-up the simulation package database, i.e., delete the content of all tables and views related to the simulation package.
+
+        :return: none
+        """
+        if self.connection_info is None:
+            raise RuntimeError( 'not connected to database' )
+
+        # Make low-level connection (via psycopg2).
+        connection = psycopg2.connect(
+            user = self.connection_info.user,
+            password = self.connection_info.pwd,
+            host = self.connection_info.host,
+            port = self.connection_info.port,
+            dbname = self.connection_info.dbname )
+
+        # Get cursor and execute 'cleanup_schema' function.
+        connection.cursor().execute( 'SELECT sim_pkg.cleanup_schema();' )
+
+        # Commit the changes.
+        connection.commit()
+
+
+    def cleanup_citydb_schema( self ):
+        """
+        Clean-up the 3DCityDB database, i.e., delete the content of all tables and views related to the 3DCityDB.
+
+        :return: none
+        """
+        if self.connection_info is None:
+            raise RuntimeError( 'not connected to database' )
+
+        # Make low-level connection (via psycopg2).
+        connection = psycopg2.connect(
+            user = self.connection_info.user,
+            password = self.connection_info.pwd,
+            host = self.connection_info.host,
+            port = self.connection_info.port,
+            dbname = self.connection_info.dbname )
+
+        # Get cursor and execute 'cleanup_schema' function.
+        connection.cursor().execute( 'SELECT citydb_pkg.cleanup_schema();' )
+
+        # Commit the changes.
+        connection.commit()
+
+
+    def map_citydb_object_class( self, classname, tablename = None, schema = None ):
+        # Check if ORM for 3DCityDB has already been initialized.
+        if DBAccess.citydb_orm_mapping_init is False:
+            self._init_citydb_orm()
+
+        try:
+            # Retrieve class info.
+            objectclass_info = DBAccess.citydb_objectclass_list[ classname ]
+
+            # Check if class has already been mapped.
+            try:
+                mapped_class_info = DBAccess.citydb_objectclass_map[ classname ]
+
+                schema_changed = ( schema is not None ) and ( mapped_class_info.schema is not schema )
+                tablename_changed = ( tablename is not None ) and ( mapped_class_info.tablename is not tablename )
+
+                if schema_changed or tablename_changed:
+                    # The class has already been mapped from the specified schema/table.
+                    if schema is None: schema = mapped_class_info.schema
+                    if tablename is None: tablename = mapped_class_info.tablename
+
+                    # Issue a warning, then re-map the class
+                    err = 'Class {} will has already been mapped from table: {} (schema: {}). '
+                    err += 'It will be re-mapped from table: {} (schema: {}).'
+                    err = err.format( classname, mapped_class_info.tablename,
+                        mapped_class_info.schema, tablename, schema )
+                    warnings.warn( err, RuntimeWarning )
+                else:
+                    # The class has already been mapped from the specified schema/table.
+                    return mapped_class_info.impl
+            except KeyError:
+                # The class has not been mapped before --> just continue.
+                # Use default values in case no schema or table has been given explicitly.
+                if schema is None: schema = 'citydb'
+                if tablename is None: tablename = objectclass_info.tablename
+
+            # Define dummy class (but with correct name) for mapping.
+            MappedClass = type( classname, (), {} )
+
+            # Retrieve meta data.
+            metadata = MetaData( self.engine )
+
+            with warnings.catch_warnings():
+                warnings.simplefilter( 'ignore', category = sa_exc.SAWarning )
+
+                table_mappedclass = None
+
+                # Define table to be mapped.
+                if schema is 'citydb_view':
+                    table_mappedclass = Table( tablename, metadata,
+                        Column( 'id', Integer, primary_key = True ),
+                        autoload = True, schema = schema )
+                else:
+                    table_mappedclass = Table( tablename, metadata,
+                        autoload = True, schema = schema )
+
+                # Map the class to the table.
+                mapper( MappedClass, table_mappedclass )
+
+            # Store mapped class.
+            DBAccess.citydb_objectclass_map[ classname ] = \
+                MappedClassInfo( impl = MappedClass, schema = schema, tablename = tablename )
+
+            return MappedClass
+
+        except KeyError:
+            # The object class name is not known --> raise error.
+            raise RuntimeError( 'unknown object class: {}'.format( classname ) )
+
+
+    def _init_citydb_orm( self ):
+        """
+        Initialize the object relational mapping of the Simulation Package.
+        """
+        if self.engine is None or self.session is None:
+            raise RuntimeError( 'not connected to database' )
+
+        # Check if mapping has already been initialized.
+        if DBAccess.citydb_orm_mapping_init is True:
             return
 
         # Retrieve meta data.
-        metadata = MetaData( engine )
+        metadata = MetaData( self.engine )
+
+        # Define class for holding information about object classes defined in database.
+        ObjectClass = type( 'ObjectClass', (), {} )
+
+        with warnings.catch_warnings():
+            warnings.simplefilter( 'ignore', category = sa_exc.SAWarning )
+
+            # Describe table 'citydb.objectclass'.
+            table_objectclass = Table( 'objectclass', metadata, autoload = True, schema = 'citydb' )
+
+            # Map table to class ObjectClass.
+            mapper( ObjectClass, table_objectclass )
+
+        # Retrieve object classes from database.
+        if self.current_session is None: self.start_citydb_session()
+        objectclass = self.current_session.query( ObjectClass ).all()
+
+        # Store object classes in dedicated list.
+        for oc in objectclass:
+            DBAccess.citydb_objectclass_list[ oc.classname ] = oc
+
+        # Generic attributes are not listed --> add manually.
+        genericattric = ObjectClass()
+        genericattric.classname = 'GenericAttribute'
+        genericattric.tablename = 'cityobject_genericattrib'
+        DBAccess.citydb_objectclass_list[ genericattric.classname ] = genericattric
+
+        # Set flag to indicate that mapping has been initialized.
+        DBAccess.citydb_orm_mapping_init = True
+
+
+    def _init_simpkg_orm( self ):
+        """
+        Initialize the object relational mapping of the Simulation Package.
+        """
+        if self.engine is None or self.session is None:
+            raise RuntimeError( 'not connected to database' )
+
+        # Check if mapping has already been done.
+        if DBAccess.simpkg_orm_mapping_init is True:
+            return
+
+        # Retrieve meta data.
+        metadata = MetaData( self.engine )
         #metadata.reflect()
 
         with warnings.catch_warnings():
-            warnings.simplefilter( "ignore", category = sa_exc.SAWarning )
+            warnings.simplefilter( 'ignore', category = sa_exc.SAWarning )
 
             # Describe table 'sim_pkg.simulation'.
             table_simulation = Table(
@@ -156,29 +414,4 @@ class DBAccess:
         mapper( GenericParameterSimulation, view_generic_parameter_sim )
 
         # Set flag to indicate that mapping has been done.
-        DBAccess.orm_mapping_done = True
-
-
-    def cleanup_schema( self, connection_info ):
-        """
-        Clean-up the database, i.e., delete the content of all tables and views.
-
-        :param connect: tuple containing connection parameters for database (PostgreSQLConnectionInfo)
-        :return: none
-        """
-        if not isinstance( connection_info, PostgreSQLConnectionInfo ):
-            raise TypeError( 'parameter \'connection_info\' must be of type \'PostgreSQLConnectionInfo\'' )
-
-        # Make low-level connection (via psycopg2).
-        connection = psycopg2.connect(
-            user = connection_info.user,
-            password = connection_info.pwd,
-            host = connection_info.host,
-            port = connection_info.port,
-            dbname = connection_info.dbname )
-
-        # Get cursor and execute 'cleanup_schema' function.
-        connection.cursor().execute( 'SELECT sim_pkg.cleanup_schema();' )
-
-        # Commit the changes.
-        connection.commit()
+        DBAccess.simpkg_orm_mapping_init = True
