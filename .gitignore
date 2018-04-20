@@ -1,0 +1,9 @@
+# Ignore directories for building distributions.
+build
+dblayer.egg-info
+dist
+.pytest_cache
+
+
+# Ignore pyc files.
+*.pyc
