@@ -3,6 +3,7 @@ from .simpkg_func import *
 
 import ictdeploy
 
+import decimal
 import pandas
 import json
 
@@ -16,7 +17,7 @@ class DBReader( DBAccess ):
     def __init__( self, connect ):
         """
         Constructor.
-        
+
         :param connect: tuple containing connection parameters for database (PostgreSQLConnectionInfo)
         """
         super().__init__()
@@ -137,9 +138,9 @@ class DBReader( DBAccess ):
                 if meta_model_name not in self.meta_models:
                     # Retrieve meta model.
                     meta_model = self.current_session.query( Node ).filter(
-                        and_( 
-                            Node.name == meta_model_name, 
-                            Node.is_template == True 
+                        and_(
+                            Node.name == meta_model_name,
+                            Node.is_template == True
                         )
                     ).one()
 
@@ -252,7 +253,69 @@ class DBReader( DBAccess ):
                 generic_param[data.name] = data.urival
             elif data.dateval is not None:
                 generic_param[data.name] = data.dateval
+            elif data.citydb_table_name is not None:
+                generic_param[data.name] = self._retrieve_object_ref( data.citydb_table_name,
+                    data.citydb_object_id, data.citydb_column_name )
+            elif data.citydb_genericattrib_name is not None:
+                generic_param[data.name] = self._retrieve_generic_attr_ref( data.citydb_genericattrib_name,
+                    data.citydb_object_id )
 
         # Return dict.
         return generic_param
 
+
+    def _retrieve_object_ref( self, table_name, object_id, column_name ):
+        # Retrieve meta data.
+        metadata = MetaData( self.engine )
+
+        # Extract name of actual schema and table.
+        schema_name, table_name = table_name.split( '.' )
+
+        # Define table.
+        table = None
+        with warnings.catch_warnings():
+            warnings.simplefilter( 'ignore', category = sa_exc.SAWarning )
+
+            if schema_name is 'citydb_view':
+                table = Table( table_name, metadata, Column( 'id', Integer, primary_key = True ),
+                    autoload = True, schema = schema_name )
+            else:
+                table = Table( table_name, metadata,
+                    autoload = True, schema = schema_name )
+
+        # Construct SQL command using SQLAlchemy.
+        sql_command = select( [ getattr( table.c, column_name ) ] ).where( table.c.id == object_id )
+
+        # Connect to database and retrieve result.
+        connection = self.engine.connect()
+        result = connection.execute( sql_command ).scalar()
+
+        if isinstance( result, decimal.Decimal ):
+            return float( result )
+
+        return result
+
+
+
+    def _retrieve_generic_attr_ref( self, generic_attr_name, generic_attr_id ):
+        # Retrieve generic attribute from database.
+        attribute = self.current_session.query( GenericAttribute ).filter(
+            and_(
+                GenericAttribute.attrname == generic_attr_name,
+                GenericAttribute.id == generic_attr_id
+            )
+        ).one()
+
+        # Return value.
+        if attribute.strval is not None:
+            return data.strval
+        elif attribute.intval is not None:
+            return attribute.intval
+        elif attribute.realval is not None:
+            return attribute.realval
+        elif attribute.arrayval is not None:
+            return attribute.arrayval
+        elif attribute.urival is not None:
+            return attribute.urival
+        elif attribute.dateval is not None:
+            return attribute.dateval

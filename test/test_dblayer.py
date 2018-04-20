@@ -135,7 +135,7 @@ def test_fill_citydb( fix_access ):
     # Insert new energy demands (associated to time series).
     fix_access.add_citydb_object( insert_energy_demand, name = 'DEMAND_01',
         time_series_id = ts_id1, cityobject_id = bui_id1 )
-    fix_access.add_citydb_object( insert_energy_demand, name = 'DEMAND_02', 
+    fix_access.add_citydb_object( insert_energy_demand, name = 'DEMAND_02',
         time_series_id = ts_id2, cityobject_id = bui_id2 )
 
     # Insert new generic attributes (associated to buildings).
@@ -157,7 +157,7 @@ def test_fill_citydb( fix_access ):
 
 def test_read_citydb( fix_access ):
     # Retrieve building data from default 3DCityDB table (citydb.building).
-    buildings = fix_access.get_citydb_objects( "Building" )
+    buildings = fix_access.get_citydb_objects( 'Building' )
 
     # Expect a query result with two entries.
     assert len( buildings ) == 2
@@ -165,13 +165,13 @@ def test_read_citydb( fix_access ):
     # Retrieve building data from user-friendly 3DCityDB view (citydb_view.building).
     with pytest.warns( RuntimeWarning ) as record:
         # Retrieve the class mapped to the view.
-        Buildings = fix_access.map_citydb_object_class( "Building", schema = 'citydb_view' )
+        Buildings = fix_access.map_citydb_object_class( 'Building', schema = 'citydb_view' )
 
         # Use the mapped class to define filter conditions.
         conditions = [ Buildings.name == 'BUILDING_02' ]
 
         # Retrieve the data.
-        buildings = fix_access.get_citydb_objects( "Building", conditions = conditions )
+        buildings = fix_access.get_citydb_objects( 'Building', conditions = conditions )
 
         # Expect a query result with only one entry.
         assert len( buildings ) == 1
@@ -205,7 +205,7 @@ def test_write_simpkg( fix_connect, fix_create_sim ):
 
 def test_write_and_read_simpkg( fix_connect, fix_create_sim ):
     # Define simulation setup name.
-    sim_name = 'TestSim2'
+    sim_name = 'TestSim1'
 
     # Write simulation setup to database. Do not write meta models and models, because
     # they have already been written to the database in one of the previous tests.
@@ -237,3 +237,34 @@ def test_write_and_read_simpkg( fix_connect, fix_create_sim ):
     assert len( g_dict[ 'nodes' ] ) == 2
     assert  sim_read.steps == [ 60, 60, 60, 60, 60, 60, 60, 60, 60, 60 ]
     assert  sim_read.sequence == [ ( 'Base0', ), ( 'Base1', ) ]
+
+
+def test_write_and_read_associate_simpkg( fix_connect, fix_access, fix_create_sim ):
+    sim_name = 'TestSim2'
+
+    HeatPump = fix_access.map_citydb_object_class( 'HeatPump', schema = 'citydb_view',
+        table_name = 'nrg8_conv_system_heat_pump' )
+    conditions = [ HeatPump.name == 'HEATPUMP_02' ]
+    heatpumps = fix_access.get_citydb_objects( 'HeatPump', conditions = conditions )
+    heatpump_id = heatpumps[0].id
+
+    GenericAttribute = fix_access.map_citydb_object_class( 'GenericAttribute' )
+    conditions = [ GenericAttribute.attrname == 'BUILDING_02_ATTR_01' ]
+    attributes = fix_access.get_citydb_objects( 'GenericAttribute', conditions = conditions )
+    attribute_id = attributes[0].id
+
+    associated_sim = fix_create_sim
+    associated_sim.edit.nodes.loc[ 'Base0' ].init_values[ 'c' ] = AssociateCityDBObject(
+        table_name = 'citydb_view.nrg8_conv_system_heat_pump', object_id = heatpump_id, column_name = 'nom_effcy' )
+    associated_sim.edit.nodes.loc[ 'Base1' ].init_values[ 'c' ] = AssociateCityDBGenericAttribute(
+        attribute_name = 'BUILDING_02_ATTR_01', attribute_id = attribute_id )
+
+    writer = DBWriter( fix_connect )
+    writer.write_to_db( associated_sim, sim_name, write_meta_models = False, write_models = False )
+
+    # Read simulation setup from database.
+    reader = DBReader( fix_connect )
+    sim_read = reader.read_from_db( sim_name )
+
+    assert( sim_read.edit.nodes.loc[ 'Base0' ].init_values[ 'c' ] == 3.4 )
+    assert( sim_read.edit.nodes.loc[ 'Base1' ].init_values[ 'c' ] == 4.5 )

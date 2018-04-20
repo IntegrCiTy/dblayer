@@ -1,4 +1,5 @@
 from .access import *
+from .associate import *
 from .simpkg_func import *
 
 import ictdeploy
@@ -259,6 +260,12 @@ class DBWriter( DBAccess ):
                 func_insert_init_val = func_insert_string_init_val_node( node_id, name, value )
             elif isinstance( value, bool ):
                 func_insert_init_val = func_insert_string_init_val_node( node_id, name, str( value ) )
+            elif isinstance( value, AssociateCityDBObject ):
+                func_insert_init_val = func_insert_object_ref_init_val_node( node_id, name,
+                    value.table_name, value.object_id, value.column_name )
+            elif isinstance( value, AssociateCityDBGenericAttribute ):
+                func_insert_init_val = func_insert_generic_attr_ref_init_val_node( node_id, name,
+                    value.attribute_name, value.attribute_id )
             else:
                 func_insert_init_val = func_insert_string_init_val_node( node_id, name, str( value ) )
 

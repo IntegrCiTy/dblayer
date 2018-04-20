@@ -17,7 +17,7 @@ import psycopg2
 PostgreSQLConnectionInfo = namedtuple( 'PostgreSQLConnectionInfo', [ 'user', 'pwd', 'host', 'port', 'dbname' ] )
 
 
-MappedClassInfo = namedtuple( 'MappedClassInfo', [ 'impl', 'schema', 'tablename' ] )
+MappedClassInfo = namedtuple( 'MappedClassInfo', [ 'impl', 'schema', 'table_name' ] )
 
 
 class DBAccess:
@@ -88,7 +88,7 @@ class DBAccess:
         """
         if self.engine is None or self.session is None:
             raise RuntimeError( 'not connected to database' )
-        
+
         # Start a new session.
         self.current_session = self.session()
 
@@ -126,15 +126,15 @@ class DBAccess:
         return self.current_session.query( inserter_func ).one()[0]
 
 
-    def get_citydb_objects( self, classname, tablename = None, schema = None, conditions = None ):
+    def get_citydb_objects( self, class_name, table_name = None, schema = None, conditions = None ):
         # Retrieve mapped class representing the object.
-        ObjectClass = self.map_citydb_object_class( classname, tablename, schema )
+        ObjectClass = self.map_citydb_object_class( class_name, table_name, schema )
 
         # Start a new database session if necessary.
         if self.current_session is None: self.start_citydb_session()
 
         # Retrieve class info.
-        class_info = DBAccess.citydb_objectclass_list[ classname ]
+        class_info = DBAccess.citydb_objectclass_list[ class_name ]
 
         if conditions is None: conditions = []
 
@@ -203,32 +203,32 @@ class DBAccess:
         connection.commit()
 
 
-    def map_citydb_object_class( self, classname, tablename = None, schema = None ):
+    def map_citydb_object_class( self, class_name, table_name = None, schema = None ):
         # Check if ORM for 3DCityDB has already been initialized.
         if DBAccess.citydb_orm_mapping_init is False:
             self._init_citydb_orm()
 
         try:
             # Retrieve class info.
-            objectclass_info = DBAccess.citydb_objectclass_list[ classname ]
+            objectclass_info = DBAccess.citydb_objectclass_list[ class_name ]
 
             # Check if class has already been mapped.
             try:
-                mapped_class_info = DBAccess.citydb_objectclass_map[ classname ]
+                mapped_class_info = DBAccess.citydb_objectclass_map[ class_name ]
 
                 schema_changed = ( schema is not None ) and ( mapped_class_info.schema is not schema )
-                tablename_changed = ( tablename is not None ) and ( mapped_class_info.tablename is not tablename )
+                table_name_changed = ( table_name is not None ) and ( mapped_class_info.table_name is not table_name )
 
-                if schema_changed or tablename_changed:
+                if schema_changed or table_name_changed:
                     # The class has already been mapped from the specified schema/table.
                     if schema is None: schema = mapped_class_info.schema
-                    if tablename is None: tablename = mapped_class_info.tablename
+                    if table_name is None: table_name = mapped_class_info.table_name
 
                     # Issue a warning, then re-map the class
                     err = 'Class {} will has already been mapped from table: {} (schema: {}). '
                     err += 'It will be re-mapped from table: {} (schema: {}).'
-                    err = err.format( classname, mapped_class_info.tablename,
-                        mapped_class_info.schema, tablename, schema )
+                    err = err.format( class_name, mapped_class_info.table_name,
+                        mapped_class_info.schema, table_name, schema )
                     warnings.warn( err, RuntimeWarning )
                 else:
                     # The class has already been mapped from the specified schema/table.
@@ -237,10 +237,10 @@ class DBAccess:
                 # The class has not been mapped before --> just continue.
                 # Use default values in case no schema or table has been given explicitly.
                 if schema is None: schema = 'citydb'
-                if tablename is None: tablename = objectclass_info.tablename
+                if table_name is None: table_name = objectclass_info.tablename
 
             # Define dummy class (but with correct name) for mapping.
-            MappedClass = type( classname, (), {} )
+            MappedClass = type( class_name, (), {} )
 
             # Retrieve meta data.
             metadata = MetaData( self.engine )
@@ -252,25 +252,25 @@ class DBAccess:
 
                 # Define table to be mapped.
                 if schema is 'citydb_view':
-                    table_mappedclass = Table( tablename, metadata,
+                    table_mappedclass = Table( table_name, metadata,
                         Column( 'id', Integer, primary_key = True ),
                         autoload = True, schema = schema )
                 else:
-                    table_mappedclass = Table( tablename, metadata,
+                    table_mappedclass = Table( table_name, metadata,
                         autoload = True, schema = schema )
 
                 # Map the class to the table.
                 mapper( MappedClass, table_mappedclass )
 
             # Store mapped class.
-            DBAccess.citydb_objectclass_map[ classname ] = \
-                MappedClassInfo( impl = MappedClass, schema = schema, tablename = tablename )
+            DBAccess.citydb_objectclass_map[ class_name ] = \
+                MappedClassInfo( impl = MappedClass, schema = schema, table_name = table_name )
 
             return MappedClass
 
         except KeyError:
             # The object class name is not known --> raise error.
-            raise RuntimeError( 'unknown object class: {}'.format( classname ) )
+            raise RuntimeError( 'unknown object class: {}'.format( class_name ) )
 
 
     def _init_citydb_orm( self ):
@@ -403,6 +403,14 @@ class DBAccess:
                 schema = 'sim_pkg'
                 )
 
+            # Describe table 'sim_pkg.port'.
+            table_generic_attribute = Table(
+                'cityobject_genericattrib',
+                metadata,
+                autoload = True,
+                schema = 'citydb'
+                )
+
         # Map tables and views to classes.
         mapper( Simulation, table_simulation )
         mapper( SimulationTool, table_simulation_tool )
@@ -412,6 +420,7 @@ class DBAccess:
         mapper( GenericParameterTool, view_generic_parameter_tool )
         mapper( GenericParameterNode, view_generic_parameter_node )
         mapper( GenericParameterSimulation, view_generic_parameter_sim )
+        mapper( GenericAttribute, table_generic_attribute )
 
         # Set flag to indicate that mapping has been done.
         DBAccess.simpkg_orm_mapping_init = True

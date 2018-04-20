@@ -36,3 +36,8 @@ class GenericParameterNode( object ):
 class GenericParameterSimulation( object ):
     """Define class for retrieving data from view 'sim_pkg.generic_parameter_sim'."""
     def __init__( self ): pass
+
+
+class GenericAttribute( object ):
+    """Define class for retrieving data from view 'citydb.cityobject_genericattrib'."""
+    def __init__( self ): pass

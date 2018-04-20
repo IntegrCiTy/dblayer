@@ -1,4 +1,5 @@
 from sqlalchemy.sql import func
+from .associate import *
 
 
 ### For some reason this function does not work ...
@@ -55,7 +56,7 @@ def func_insert_node( node_name, sim_id, tool_id, template_node_id = None ):
         tool_id # tool_id (integer)
         )
 
-        
+
 def func_insert_node_template( node_name ):
     """
     Define function call to insert a template node into the database.
@@ -611,6 +612,93 @@ def func_insert_array_init_val_node( node_id, name, value, unit = None ):
         None, # intval (integer)
         None, # realval (numeric)
         value, # arrayval (numeric[])
+        None, # urival (character varying)
+        None, # dateval (timestamp with time zone)
+        unit, # unit (character varying)
+        None, # tool_id (integer)
+        node_id, # node_id (integer)
+        None, # simulation_id (integer)
+        )
+
+
+def func_insert_object_ref_init_val_node( node_id, name, table_name, object_id, column_name, unit = None ):
+    """
+    Define function call to insert array parameter associated to node into the database.
+    """
+    if not isinstance( node_id, int ):
+        raise TypeError( 'parameter \'node_id\' must be of type \'int\'' )
+
+    if not isinstance( name, str ):
+        raise TypeError( 'parameter \'name\' must be of type \'str\'' )
+
+    if not isinstance( table_name, str ):
+        raise TypeError( 'parameter \'table_name\' must be of type \'str\'' )
+
+    if not isinstance( object_id, int ):
+        raise TypeError( 'parameter \'object_id\' must be of type \'int\'' )
+
+    if not isinstance( column_name, str ):
+        raise TypeError( 'parameter \'column_name\' must be of type \'str\'' )
+
+    if unit is not None and not isinstance( unit, str ):
+        raise TypeError( 'parameter \'unit\' must be of type \'str\'' )
+
+    return func.sim_pkg.insert_generic_parameter_init(
+        name, # name (character varying)
+        None, # id (integer)
+        None, # name_codespace (character varying)
+        None, # description (text)
+        table_name, # citydb_table_name (character varying)
+        object_id, # citydb_object_id (integer)
+        column_name, # citydb_column_name (character)
+        None, # citydb_genericattrib_name (character varying)
+        None, # citydb_function (character varying)
+        None, # strval (character varying)
+        None, # intval (integer)
+        None, # realval (numeric)
+        None, # arrayval (numeric[])
+        None, # urival (character varying)
+        None, # dateval (timestamp with time zone)
+        unit, # unit (character varying)
+        None, # tool_id (integer)
+        node_id, # node_id (integer)
+        None, # simulation_id (integer)
+        )
+
+
+def func_insert_generic_attr_ref_init_val_node( node_id, name, attribute_name, attribute_id, unit = None ):
+    """
+    Define function call to insert array parameter associated to node into the database.
+    """
+    if not isinstance( node_id, int ):
+        raise TypeError( 'parameter \'node_id\' must be of type \'int\'' )
+
+    if not isinstance( name, str ):
+        raise TypeError( 'parameter \'name\' must be of type \'str\'' )
+
+    if not isinstance( attribute_name, str ):
+        raise TypeError( 'parameter \'attribute_name\' must be of type \'str\'' )
+
+    if not isinstance( attribute_id, int ):
+        raise TypeError( 'parameter \'attribute_id\' must be of type \'int\'' )
+
+    if unit is not None and not isinstance( unit, str ):
+        raise TypeError( 'parameter \'unit\' must be of type \'str\'' )
+
+    return func.sim_pkg.insert_generic_parameter_init(
+        name, # name (character varying)
+        None, # id (integer)
+        None, # name_codespace (character varying)
+        None, # description (text)
+        None, # citydb_table_name (character varying)
+        attribute_id, # citydb_object_id (integer)
+        None, # citydb_column_name (character)
+        attribute_name, # citydb_genericattrib_name (character varying)
+        None, # citydb_function (character varying)
+        None, # strval (character varying)
+        None, # intval (integer)
+        None, # realval (numeric)
+        None, # arrayval (numeric[])
         None, # urival (character varying)
         None, # dateval (timestamp with time zone)
         unit, # unit (character varying)
