@@ -244,8 +244,10 @@ def test_write_and_read_associate_simpkg( fix_connect, fix_access, fix_create_si
 
     HeatPump = fix_access.map_citydb_object_class( 'HeatPump', schema = 'citydb_view',
         table_name = 'nrg8_conv_system_heat_pump' )
-    conditions = [ HeatPump.name == 'HEATPUMP_02' ]
+    conditions = [ HeatPump.name == 'HEATPUMP_02', HeatPump.nom_effcy==3.4 ]
     heatpumps = fix_access.get_citydb_objects( 'HeatPump', conditions = conditions )
+
+    assert( len( heatpumps ) == 1 )
     heatpump_id = heatpumps[0].id
 
     GenericAttribute = fix_access.map_citydb_object_class( 'GenericAttribute' )
