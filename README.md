@@ -160,7 +160,7 @@ For the following, consider that a co-simulation setup called `sim` has been def
 Package DBLayer implements the mapping of the **Simulation Package** scheme to IntegrCiTy’s concepts for representing such a co-simulation setup, providing basically a persistence layer for co-simulation setups.
 For storing co-simulation setups to the extended 3DCityDB, package DBLayer provides class `DBWriter`.
 Upon connecting to the database, a co-simulation setup can be assigned a name and written to the database with the help of a single command.
-Setting parameters `write_meta_models` and `write_models` to `False` indicates that a co-simulation setup already defining meta-model `MetaBase` and model `BaseModel` has been previously written to the same database (otherwise the corresponding parameters should be omitted).
+Setting parameters `write_meta_models` and `write_models` to `False` indicates that a co-simulation setup already defining meta-model `MetaBase` and model `BaseModel` have been previously written to the same database (otherwise the corresponding parameters should be omitted).
 
 ```python
   # Create writer and connect to database.
@@ -213,18 +213,18 @@ This is demonstrated in the following pseudo code snippet, which basically exten
     )
 
   # Link attribute "c" of "Base0" with the association.
-  sim_assoc.edit.nodes.loc[ 'Base0' ].init_values[ 'c' ] = associate_object
+  sim.edit.nodes.loc[ 'Base0' ].init_values[ 'c' ] = associate_object
 
   # Write the co-simulation setup to the database (storing the association).
   writer.write_to_db(
-    sim_assoc,
+    sim,
     'TestSim2',
     write_meta_models = False,
     write_models = False
     )
 ```
 
-Please note that in above example the resulting co-simulation graph object `sim_assoc` is **not valid to deploy an actual co-simulation** (because parameter `c` is not associated to a scalar or vector).
+Please note that in above example the resulting co-simulation graph object `sim` is **not valid to deploy an actual co-simulation** (because parameter `c` is not associated to a scalar or vector).
 However, when writing the setup to the database, the association of parameter `c` with the corresponding table attribute is stored persistently.
 Furthermore, **when reading this stored co-simulation setup from the database** (using class `DBReader`), the **association is automatically resolved**.
 This means that parameter `c` in the resulting co-simulation setup would have the corresponding numerical value and the setup would be **valid to deploy an actual co-simulation**.
