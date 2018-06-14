@@ -13,10 +13,13 @@ from sqlalchemy.sql.functions import Function as SQLFunction
 
 import psycopg2
 
-
+# Tuple containing information requried to connect to the database.
 PostgreSQLConnectionInfo = namedtuple( 'PostgreSQLConnectionInfo', [ 'user', 'pwd', 'host', 'port', 'dbname' ] )
 
+# Tuple containing information about the existing object representation in the database.
+ObjectClassInfo = namedtuple( 'ObjectClassInfo', [ 'id', 'schema', 'table_name' ] )
 
+# Tuple containing information about the mapped object representation.
 MappedClassInfo = namedtuple( 'MappedClassInfo', [ 'impl', 'schema', 'table_name' ] )
 
 
@@ -236,8 +239,8 @@ class DBAccess:
             except KeyError:
                 # The class has not been mapped before --> just continue.
                 # Use default values in case no schema or table has been given explicitly.
-                if schema is None: schema = 'citydb'
-                if table_name is None: table_name = objectclass_info.tablename
+                if schema is None: schema = objectclass_info.schema
+                if table_name is None: table_name = objectclass_info.table_name
 
             # Define dummy class (but with correct name) for mapping.
             MappedClass = type( class_name, (), {} )
@@ -303,16 +306,23 @@ class DBAccess:
         if self.current_session is None: self.start_citydb_session()
         objectclass = self.current_session.query( ObjectClass ).all()
 
-        # Store object classes in dedicated list.
+        # Store overview of object classes as defined in schema 'citydb' (default representation).
         for oc in objectclass:
-            DBAccess.citydb_objectclass_list[ oc.classname ] = oc
+            DBAccess.citydb_objectclass_list[ oc.classname ] = \
+                ObjectClassInfo( id = oc.id, table_name = oc.tablename, schema = 'citydb' )
 
         # Generic attributes are not listed --> add manually.
-        genericattric = ObjectClass()
-        genericattric.classname = 'GenericAttribute'
-        genericattric.tablename = 'cityobject_genericattrib'
-        DBAccess.citydb_objectclass_list[ genericattric.classname ] = genericattric
+        DBAccess.citydb_objectclass_list[ 'GenericAttribute' ] = \
+            ObjectClassInfo( id = None, table_name = 'cityobject_genericattrib', schema = 'citydb' )
 
+        # Add also specialized representations of generic attributes (from 'citydb_view').
+        DBAccess.citydb_objectclass_list[ 'GenericAttributeReal' ] = \
+            ObjectClassInfo( id = None, table_name = 'cityobject_genericattrib_real', schema = 'citydb_view' )
+        DBAccess.citydb_objectclass_list[ 'GenericAttributeInteger' ] = \
+            ObjectClassInfo( id = None, table_name = 'cityobject_genericattrib_int', schema = 'citydb_view' )
+        DBAccess.citydb_objectclass_list[ 'GenericAttributeString' ] = \
+            ObjectClassInfo( id = None, table_name = 'cityobject_genericattrib_string', schema = 'citydb_view' )
+        
         # Set flag to indicate that mapping has been initialized.
         DBAccess.citydb_orm_mapping_init = True
 
