@@ -1,6 +1,6 @@
 from .access import *
 from .associate import *
-from .simpkg_func import *
+from .func.func_simpkg import *
 
 import ictdeploy
 

@@ -1,5 +1,4 @@
 from sqlalchemy.sql import func
-from .associate import *
 
 
 ### For some reason this function does not work ...

@@ -4,7 +4,9 @@ import os
 import sqlalchemy.orm.exc
 
 from dblayer import *
-from dblayer.citydb_view_func import *
+from dblayer.func.func_citydb_view import *
+from dblayer.func.func_citydb_view_nrg import *
+from dblayer.func.func_postgis_geom import *
 import ictdeploy
 
 import pandas as pd
@@ -270,3 +272,35 @@ def test_write_and_read_associate_simpkg( fix_connect, fix_access, fix_create_si
 
     assert( sim_read.edit.nodes.loc[ 'Base0' ].init_values[ 'c' ] == 3.4 )
     assert( sim_read.edit.nodes.loc[ 'Base1' ].init_values[ 'c' ] == 4.5 )
+
+    
+def test_geom_func( fix_connect, fix_access ):
+    # Check implementation of function 'geom_from_text'.
+    geo = fix_access.execute_function( geom_from_text( 'POINT(1 2)' ) )
+    assert( geo == '0101000000000000000000F03F0000000000000040' )
+    text = fix_access.execute_function( geom_as_text( geo ) )
+    assert( text.upper() == 'POINT(1 2)' )
+    
+    # Check implementation of function 'geom_from_2dpoint'.
+    geo = fix_access.execute_function( geom_from_2dpoint( Point2D( 3, 5 ) ) )
+    assert( geo == '0101000080000000000000084000000000000014400000000000000000' )
+    text = fix_access.execute_function( geom_as_text( geo ) )
+    print( text.upper() == 'POINT(3 5)' )
+ 
+    # Check implementation of function 'geom_from_2dlinestring'.
+    geo = fix_access.execute_function( geom_from_2dlinestring( [ Point2D( 3, 5 ), Point2D( 4, 6 ) ] ) )
+    assert( geo == '010200008002000000000000000000084000000000000014400000000000000000000000000000104000000000000018400000000000000000' )
+    text = fix_access.execute_function( geom_as_text( geo ) )
+    assert( text.upper() == 'LINESTRING Z (3 5 0,4 6 0)' )
+    
+    # Check implementation of function 'geom_from_2dpolygon'.
+    geo = fix_access.execute_function( geom_from_2dpolygon( [ Point2D( 3, 5 ), Point2D( 4, 6 ), Point2D( 15, 7 ), Point2D( 3, 5 ) ] ) )
+    assert( geo == '010300008001000000040000000000000000000840000000000000144000000000000000000000000000001040000000000000184000000000000000000000000000002E400000000000001C400000000000000000000000000000084000000000000014400000000000000000' )
+    text = fix_access.execute_function( geom_as_text( geo ) )
+    assert( text.upper() == 'POLYGON Z ((3 5 0,4 6 0,15 7 0,3 5 0))' )
+    
+    try:
+        # First and last point do not coincide --> will raise error.
+        fix_access.execute_function( geom_from_2dpolygon( [ Point2D( 3, 5 ), Point2D( 4, 6 ), Point2D( 15, 7 ) ] ) )
+    except ValueError as e:
+        assert( str( e ) == 'first and last point do not coincide' )

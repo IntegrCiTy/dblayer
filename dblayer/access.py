@@ -1,4 +1,4 @@
-from .simpkg_orm import *
+from .orm.orm_simpkg import *
 
 from collections import namedtuple
 
@@ -156,6 +156,23 @@ class DBAccess:
         filter_conditions = and_( *conditions )
 
         return self.current_session.query( ObjectClass ).filter( filter_conditions ).all()
+
+
+    def execute_function( self, func ):
+        """
+        Execute SQL function.
+
+        :param func: SQL function (sqlalchemy.sql.functions.Function)
+        :return: returns the scalar return value of the SQL function (typically an object-specific ID)
+        """
+        # Check if 'inserter_func' is a function of type 'sqlalchemy.sql.functions.Function'
+        if not isinstance( func, SQLFunction ):
+            raise TypeError( 'parameter \'func\' must be a function returning type \'sqlalchemy.sql.functions.Function\'' )
+
+        # Start new session if necessary.
+        if self.current_session is None: self.start_citydb_session()
+
+        return self.current_session.query( func ).one()[0]
 
 
     def cleanup_simpkg_schema( self ):
