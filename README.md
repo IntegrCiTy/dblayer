@@ -228,3 +228,8 @@ Please note that in above example the resulting co-simulation graph object `sim`
 However, when writing the setup to the database, the association of parameter `c` with the corresponding table attribute is stored persistently.
 Furthermore, **when reading this stored co-simulation setup from the database** (using class `DBReader`), the **association is automatically resolved**.
 This means that parameter `c` in the resulting co-simulation setup would have the corresponding numerical value and the setup would be **valid to deploy an actual co-simulation**.
+
+
+## Extended example
+
+An extended example for using package DBLayer can be found in subdirectory `examples`.
