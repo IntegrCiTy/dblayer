@@ -1,10 +1,10 @@
-# The DBLayer Package
+# The DBLayer Package - IntegrCiTy Data Access Layer
 
 ## About
 
 To run [OBNL](https://github.com/IntegrCiTy/obnl), the user has to provide a **co-simulation setup** to the [IntegrCiTy co-simulation deployment API](https://github.com/IntegrCiTy/ictdeploy), which defines the individual simulation nodes, the input and output variables of these nodes as well as the links between the input and output variables.
 
-The **DBLayer package** provides a link between such co-simulation setups and a database.
+The **DBLayer package** provides a data access layer, which is basically a link between such co-simulation setups and a database.
 This includes:
 * retrieving/storing scenario data from/to a database
 * retrieving/storing co-simulation setups from/to a database
