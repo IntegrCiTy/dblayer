@@ -400,6 +400,69 @@ def insert_ntw_feat_simple_funct_elem(
         )
 
 
+def insert_ntw_feat_complex_funct_elem(
+    id = None,
+    gmlid = None,
+    gmlid_codespace = None,
+    name = None,
+    name_codespace = None,
+    description = None,
+    envelope = None,
+    creation_date = None,
+    termination_date = None,
+    relative_to_terrain = None,
+    relative_to_water = None,
+    last_modification_date = None,
+    updating_person = None,
+    reason_for_update = None,
+    lineage = None,
+    ntw_feature_parent_id = None,
+    ntw_feature_root_id = None,
+    class_name = None,
+    function = None,
+    usage = None,
+    year_of_construction = None,
+    status = None,
+    location_quality = None,
+    elevation_quality = None,
+    cityobject_id = None,
+    prot_element_id = None,
+    geom = None
+    ) :
+    '''
+    Define function call to insert complex functional element into the database.
+    '''
+    return func.citydb_view.utn9_insert_ntw_feat_complex_funct_elem(
+        id, # integer, default: NULL::integer,
+        gmlid, # character varying, default: NULL::character varying,
+        gmlid_codespace, # character varying, default: NULL::character varying,
+        name, # character varying, default: NULL::character varying,
+        name_codespace, # character varying, default: NULL::character varying,
+        description, # character varying, default: NULL::character varying,
+        envelope, # geometry, default: NULL::geometry,
+        creation_date, # timestamp with time zone, default: NULL::timestamp with time zone,
+        termination_date, # timestamp with time zone, default: NULL::timestamp with time zone,
+        relative_to_terrain, # character varying, default: NULL::character varying,
+        relative_to_water, # character varying, default: NULL::character varying,
+        last_modification_date, # timestamp with time zone, default: NULL::timestamp with time zone,
+        updating_person, # character varying, default: NULL::character varying,
+        reason_for_update, # character varying, default: NULL::character varying,
+        lineage, # character varying, default: NULL::character varying,
+        ntw_feature_parent_id, # integer, default: NULL::integer,
+        ntw_feature_root_id, # integer, default: NULL::integer,
+        class_name, # character varying, default: NULL::character varying,
+        function, # character varying, default: NULL::character varying,
+        usage, # character varying, default: NULL::character varying,
+        year_of_construction, # date, default: NULL::date,
+        status, # character varying, default: NULL::character varying,
+        location_quality, # character varying, default: NULL::character varying,
+        elevation_quality, # character varying, default: NULL::character varying,
+        cityobject_id, # integer, default: NULL::integer,
+        prot_element_id, # integer, default: NULL::integer,
+        geom # geometry, default: NULL::geometry
+        )
+
+
 def insert_ntw_feat_term_elem(
     id = None,
     gmlid = None,
@@ -460,4 +523,17 @@ def insert_ntw_feat_term_elem(
         cityobject_id, # integer, default: NULL::integer
         prot_element_id, # integer, default: NULL::integer
         geom # geometry, default: NULL::geometry
+        )
+
+
+def insert_network_to_network_feature(
+    network_id,
+    network_feature_id
+    ):
+    '''
+    Insert association between network and network feature.
+    '''
+    return func.citydb_pkg.utn9_insert_network_to_network_feature(
+        network_id, # integer
+        network_feature_id # integer
         )
