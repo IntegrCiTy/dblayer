@@ -7,7 +7,7 @@ setup(
 	maintainer = 'IntegrCiTy development team',
 	maintainer_email = 'edmund.widl@ait.ac.at',
 	url = 'https://github.com/IntegrCiTy/dblayer',
-	version = '0.0.1',
+	version = '0.0.2',
 	platforms = [ platform.platform() ], # TODO indicate really tested platforms
 	packages = find_packages(),
 	install_requires = [ 'psycopg2', 'sqlalchemy' ],

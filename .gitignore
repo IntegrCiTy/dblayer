@@ -4,6 +4,8 @@ dblayer.egg-info
 dist
 .pytest_cache
 
+# Ignore Jupyter notebook temporary files
+examples/.ipynb_checkpoints
 
 # Ignore pyc files.
 *.pyc
