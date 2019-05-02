@@ -1,7 +1,7 @@
 name,type,vn_kv,x,y
 bus-0-MV,busbar,20.0,0,0
 bus-R0-MV,busbar,20.0,1,0
-bus-R1-LV,plate,0.4,2,0
+bus-R1-LV,busbar,0.4,2,0
 bus-R2-LV,plate,0.4,37,0
 bus-R3-LV,plate,0.4,72,0
 bus-R4-LV,plate,0.4,107,0

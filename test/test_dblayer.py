@@ -7,6 +7,9 @@ from dblayer import *
 from dblayer.func.func_citydb_view import *
 from dblayer.func.func_citydb_view_nrg import *
 from dblayer.func.func_postgis_geom import *
+from dblayer.helpers.utn.electrical_network import *
+from dblayer.sim.pandapower import *
+
 import ictdeploy
 
 import pandas as pd
@@ -103,6 +106,11 @@ def fix_create_sim():
     return sim
 
 
+@pytest.fixture()
+def fix_network_id():
+    return 1000
+
+
 def test_cleanup_citydb_schema( fix_access ):
     fix_access.cleanup_citydb_schema()
 
@@ -113,8 +121,8 @@ def test_cleanup_simpkg_schema( fix_access ):
 
 def test_map_invalid_class( fix_access ):
     with pytest.raises( RuntimeError ) as e:
-        fix_access.map_citydb_object_class( 'InvalidObjectClassName' )
-    assert 'unknown object class: InvalidObjectClassName' in str( e )
+        fix_access.map_citydb_object_class( 'UnknownObjectClassName' )
+    assert 'RuntimeError: a table name must be specified for user-defined mappings' in str( e )
 
 
 def test_fill_citydb( fix_access ):
@@ -167,10 +175,10 @@ def test_read_citydb( fix_access ):
     # Retrieve building data from user-friendly 3DCityDB view (citydb_view.building).
     with pytest.warns( RuntimeWarning ) as record:
         # Retrieve the class mapped to the view.
-        Buildings = fix_access.map_citydb_object_class( 'Building', schema = 'citydb_view' )
+        Building = fix_access.map_citydb_object_class( 'Building', schema = 'citydb_view' )
 
         # Use the mapped class to define filter conditions.
-        conditions = [ Buildings.name == 'BUILDING_02' ]
+        conditions = [ Building.name == 'BUILDING_02' ]
 
         # Retrieve the data.
         buildings = fix_access.get_citydb_objects( 'Building', conditions = conditions )
@@ -178,11 +186,22 @@ def test_read_citydb( fix_access ):
         # Expect a query result with only one entry.
         assert len( buildings ) == 1
 
+        # Retrieve the class mapped to the default table.
+        GenericAttribute = fix_access.map_citydb_object_class( 'GenericAttribute' )
+
+        # Retrieve all generic attributes associated to a building by joining data from 2 tables.
+        attributes = fix_access.join_citydb_objects(
+            [ 'GenericAttribute', 'Building' ],
+            conditions = [ GenericAttribute.cityobject_id == Building.id ]
+            )
+        
+        assert( len( attributes ) == 6 )
+
     # Check that only one warning was raised.
     assert len( record ) == 1
 
     # Check that the message matches.
-    assert record[0].message.args[0] == 'Class Building will has already been mapped from table: building (schema: citydb). It will be re-mapped from table: building (schema: citydb_view).'
+    assert record[0].message.args[0] == 'Class Building has already been mapped from table: building (schema: citydb). It will be re-mapped from table: building (schema: citydb_view).'
 
 
 def test_read_simpkg_invalid( fix_connect ):
@@ -273,34 +292,102 @@ def test_write_and_read_associate_simpkg( fix_connect, fix_access, fix_create_si
     assert( sim_read.edit.nodes.loc[ 'Base0' ].init_values[ 'c' ] == 3.4 )
     assert( sim_read.edit.nodes.loc[ 'Base1' ].init_values[ 'c' ] == 4.5 )
 
-    
+
 def test_geom_func( fix_connect, fix_access ):
     # Check implementation of function 'geom_from_text'.
     geo = fix_access.execute_function( geom_from_text( 'POINT(1 2)' ) )
     assert( geo == '0101000000000000000000F03F0000000000000040' )
     text = fix_access.execute_function( geom_as_text( geo ) )
     assert( text.upper() == 'POINT(1 2)' )
-    
+
     # Check implementation of function 'geom_from_2dpoint'.
     geo = fix_access.execute_function( geom_from_2dpoint( Point2D( 3, 5 ) ) )
     assert( geo == '0101000080000000000000084000000000000014400000000000000000' )
     text = fix_access.execute_function( geom_as_text( geo ) )
     print( text.upper() == 'POINT(3 5)' )
- 
+
     # Check implementation of function 'geom_from_2dlinestring'.
     geo = fix_access.execute_function( geom_from_2dlinestring( [ Point2D( 3, 5 ), Point2D( 4, 6 ) ] ) )
     assert( geo == '010200008002000000000000000000084000000000000014400000000000000000000000000000104000000000000018400000000000000000' )
     text = fix_access.execute_function( geom_as_text( geo ) )
     assert( text.upper() == 'LINESTRING Z (3 5 0,4 6 0)' )
-    
+
     # Check implementation of function 'geom_from_2dpolygon'.
     geo = fix_access.execute_function( geom_from_2dpolygon( [ Point2D( 3, 5 ), Point2D( 4, 6 ), Point2D( 15, 7 ), Point2D( 3, 5 ) ] ) )
     assert( geo == '010300008001000000040000000000000000000840000000000000144000000000000000000000000000001040000000000000184000000000000000000000000000002E400000000000001C400000000000000000000000000000084000000000000014400000000000000000' )
     text = fix_access.execute_function( geom_as_text( geo ) )
     assert( text.upper() == 'POLYGON Z ((3 5 0,4 6 0,15 7 0,3 5 0))' )
-    
+
     try:
         # First and last point do not coincide --> will raise error.
         fix_access.execute_function( geom_from_2dpolygon( [ Point2D( 3, 5 ), Point2D( 4, 6 ), Point2D( 15, 7 ) ] ) )
     except ValueError as e:
         assert( str( e ) == 'first and last point do not coincide' )
+
+
+def test_fill_citydb_utn_electrical( fix_access, fix_network_id ):
+
+    # Define spatial reference ID.
+    srid = 25833
+
+    # Create network and network graph.
+    ntw_id = fix_access.add_citydb_object( insert_network, name = 'test_network', id = fix_network_id )
+    ntw_graph_id = fix_access.add_citydb_object( insert_network_graph, name = 'test_network_graph', network_id = ntw_id )
+
+    # Add electrical busses.
+    bus_lv = write_bus_to_db( fix_access, 'bus-lv', 'busbar', Point2D( 2., 0. ), 0.4, srid, ntw_id, ntw_graph_id )
+    bus_mv = write_bus_to_db( fix_access, 'bus-mv', 'busbar', Point2D( 1., 0. ), 20., srid, ntw_id, ntw_graph_id )
+    bus_1 = write_bus_to_db( fix_access, 'bus-1', 'busbar', Point2D( 3., 0. ), 0.4, srid, ntw_id, ntw_graph_id )
+    bus_2 = write_bus_to_db( fix_access, 'bus-2', 'busbar', Point2D( 10., 0. ), 0.4, srid, ntw_id, ntw_graph_id )
+
+    # Add transformer.
+    write_transformer_to_db( fix_access, 'trafo', bus_mv, bus_lv, '0.63 MVA 20/0.4 kV', srid, ntw_id, ntw_graph_id )
+
+    # Add external grid.
+    write_terminal_element_to_db( fix_access, 'feeder', 'external-grid', bus_mv, srid, ntw_id, ntw_graph_id )
+
+    # Add switch.
+    write_switch_to_db( fix_access, 'switch', bus_lv, bus_1, 'CB', srid, ntw_id, ntw_graph_id )
+
+    # Add electrical line.
+    write_line_to_db( fix_access, 'line', bus_1, bus_2, 0.01, 0.1, 0.05, 1., 'cs', srid, ntw_id, ntw_graph_id )
+
+    # Add electrical load.
+    write_load_to_db( fix_access, 'load', bus_2, 10., 0.1, srid, ntw_id, ntw_graph_id )
+
+    fix_access.commit_citydb_session()
+
+
+def test_sim_utn_electrical_pandapower( fix_connect, fix_network_id ):
+
+    # Instantiate reader.
+    pp_reader = PandaPowerModelDBReader( fix_connect )
+
+    with pytest.warns( RuntimeWarning ) as record:
+        # Create simulation model from database.
+        net = pp_reader.get_net( network_id = fix_network_id )
+
+    assert( len( record ) == 1 )
+
+    # Check number of elements in the simulation model.
+    assert( len( net.bus ) == 4 )
+    assert( len( net.load ) == 1 )
+    assert( len( net.switch ) == 1 )
+    assert( len( net.ext_grid ) == 1 )
+    assert( len( net.line ) == 1 )
+    assert( len( net.trafo ) == 1 )
+    assert( len( net.line_geodata ) == 1 )
+    assert( len( net.bus_geodata ) == 4 )
+
+    # Run a power flow calculation.
+    pp.runpp( net, numba=False )
+
+    # Check results.
+    bus_mv_id = pp.get_element_index( net, 'bus', 'bus-mv' )
+    bus_2_id = pp.get_element_index( net, 'bus', 'bus-2' )
+    assert( net.res_bus.iloc[bus_mv_id].p_kw == pytest.approx( -11.652311, 1e-4 ) )
+    assert( net.res_bus.iloc[bus_mv_id].q_kvar == pytest.approx( -0.111221, 1e-4 ) )
+    assert( net.res_bus.iloc[bus_2_id].vm_pu == pytest.approx( 0.999739, 1e-4 ) )
+    assert( net.res_bus.iloc[bus_2_id].va_degree == pytest.approx( -0.058996, 1e-4 ) )
+    assert( net.res_line.iloc[0].i_ka == pytest.approx( 0.014438, 1e-4 ) )
+    assert( net.res_line.iloc[0].loading_percent == pytest.approx( 1.443825, 1e-4 ) )

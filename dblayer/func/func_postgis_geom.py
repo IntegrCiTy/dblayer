@@ -1,8 +1,17 @@
 from sqlalchemy.sql import func
 from collections import namedtuple
 
-# Tuple for representing 2D points.
-Point2D = namedtuple( 'Point2D', [ 'x', 'y' ] )
+
+class Point2D( namedtuple( 'Point2D_Tuple', [ 'x', 'y' ] ) ):
+    """
+    Tuple for representing 2D points.
+
+    Attributes:
+
+    x, y (float): 2D coordinates
+    """
+
+    __slots__ = ()
 
 
 def geom_from_text(
@@ -11,7 +20,7 @@ def geom_from_text(
     ):
     """
     Define function call for converting well-known text representation to PostGIS geometry object.
-    
+
     :param well_known_text: well-known text representation of geometry (string)
     :return: SQL function (sqlalchemy.sql.functions.Function)
     """
@@ -19,15 +28,15 @@ def geom_from_text(
         return func.ST_GeomFromText( well_known_text )
     else:
         return func.ST_GeomFromText( well_known_text, srid )
-        
-        
+
+
 def geom_from_2dpoint(
     point,
     srid = None
     ):
     """
     Define function call for converting 2D point to PostGIS geometry object.
-    
+
     :param point: coordinates of 2D point (Point2D)
     :return: SQL function (sqlalchemy.sql.functions.Function)
     """
@@ -46,13 +55,13 @@ def geom_from_2dlinestring(
     ):
     """
     Define function call for converting a 2D line to PostGIS geometry object.
-    
+
     :param points: 2D points to be joined in a connected series of line segments (list of Point2D)
     :return: SQL function (sqlalchemy.sql.functions.Function)
     """
     if not all( isinstance( p, Point2D ) for p in points ):
         raise TypeError( 'parameter \'points\' must be of type \'list of Point2D\'' )
-    
+
     # Construct well-known text representation of 2D linestring.
     coordinates = []
     for p in points:
@@ -69,7 +78,7 @@ def geom_from_2dpolygon(
     ):
     """
     Define function call for converting a 2D polygon to PostGIS geometry object.
-    
+
     :param points: 2D points to be joined in a closed loop of line segments (list of Point2D)
     :return: SQL function (sqlalchemy.sql.functions.Function)
     """
@@ -80,7 +89,7 @@ def geom_from_2dpolygon(
     last_point = points[-1]
     if ( first_point.x is not last_point.x ) or ( first_point.y is not last_point.y ):
         raise ValueError( 'first and last point do not coincide' )
-    
+
     # Construct well-known text representation of 2D polygon.
     coordinates = []
     for p in points:
@@ -90,14 +99,26 @@ def geom_from_2dpolygon(
 
     return geom_from_text( well_known_text, srid )
 
-    
+
 def geom_as_text(
     geometry
     ):
     """
     Define function call for converting PostGIS geometry object to well-known text representation.
-    
-    :param well_known_text: PostGIS geometry object (string)
+
+    :param geometry: PostGIS geometry object (string)
     :return: SQL function (sqlalchemy.sql.functions.Function)
     """
     return func.ST_AsText( geometry )
+
+
+def length_from_geom(
+    geometry
+    ):
+    """
+    Define function call for calculating length of PostGIS geometry object.
+
+    :param geometry: PostGIS geometry object (string)
+    :return: SQL function (sqlalchemy.sql.functions.Function)
+    """
+    return func.ST_Length( geometry )

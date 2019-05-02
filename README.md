@@ -8,6 +8,7 @@ The **DBLayer package** provides a data access layer, which is basically a link 
 This includes:
 * retrieving/storing scenario data from/to a database
 * retrieving/storing co-simulation setups from/to a database
+* creating simulation models from information stored in a database
 * associating initial values and parameters of a simulator configuration with entries in the database and retrieving/storing the from/to the database
 
 
@@ -230,6 +231,6 @@ Furthermore, **when reading this stored co-simulation setup from the database** 
 This means that parameter `c` in the resulting co-simulation setup would have the corresponding numerical value and the setup would be **valid to deploy an actual co-simulation**.
 
 
-## Extended example
+## More examples
 
-An extended example for using package DBLayer can be found in subdirectory `examples`.
+More examples for using package DBLayer can be found in subdirectory `examples`.

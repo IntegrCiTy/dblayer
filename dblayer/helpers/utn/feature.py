@@ -104,6 +104,7 @@ def insert_and_link_ntw_feature_2dpoint(
     :param feature_args: additional keyword arguments to be used by function insert_ntw_feature_func (**kwargs)
     :return: tuple containing the new feature ID, feature graph ID, node ID and inter feature link ID
     '''
+    
     # Insert the new network feature.
     feature_id, feature_graph_id, node_id = insert_ntw_feature_2dpoint(
         access,

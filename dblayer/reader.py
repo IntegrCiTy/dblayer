@@ -4,7 +4,7 @@ from .func.func_simpkg import *
 import ictdeploy
 
 import decimal
-import pandas
+#import pandas
 import json
 
 

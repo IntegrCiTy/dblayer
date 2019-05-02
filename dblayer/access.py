@@ -130,6 +130,16 @@ class DBAccess:
 
 
     def get_citydb_objects( self, class_name, table_name = None, schema = None, conditions = None ):
+        """
+        Retrieve all objects of one type from the database.
+        
+        :param class_name: name of mapped object class (string)
+        :param table: alternative table name (string, optional)
+        :param schema: alternative schema name (string, optional)
+        :param conditions: list of filters applied when retrieving the objects (list of sqlalchemy.sql.elements.BinaryExpression, optional)
+        
+        :return: list of results
+        """
         # Retrieve mapped class representing the object.
         ObjectClass = self.map_citydb_object_class( class_name, table_name, schema )
 
@@ -156,6 +166,50 @@ class DBAccess:
         filter_conditions = and_( *conditions )
 
         return self.current_session.query( ObjectClass ).filter( filter_conditions ).all()
+
+
+    def join_citydb_objects( self, class_names, conditions, result_index = None ):
+        """
+        Retrieve selected objects from the database by 'joining' more than one table or view. The tables or views are represented by object classes, which have to mapped before performing this operation.
+        
+        :param class_names: list name of mapped object class (list of string)
+        :param conditions: list of filters applied when retrieving the objects (list of sqlalchemy.sql.elements.BinaryExpression, optional)
+        :param result_index: restrict results to the collection output associated to this index, i.e., if result_index == N then only the results for the (N+1)th object class will be returned (int, optional)
+        
+        :return: list of results, with each entry a collection of associated result objects (list of sqlalchemy.util._collections.result), unless parameter result_index is specified (see above)
+        """
+        # Retrieve mapped classes representing the objects.
+        object_classes = []
+        for class_name in class_names:
+            ObjectClass = self.map_citydb_object_class( class_name )
+
+            # Retrieve class info.
+            class_info = DBAccess.citydb_objectclass_list[ class_name ]
+
+            if not class_info.id is None:
+                try:
+                    # In case the mapped class has an attribute called 'objectclass_id', set it
+                    # to the according value retrieved from table 'citydb.objectclass'. This is
+                    # required when retrieving objects from tables that store more than one type
+                    # of object (with the different types distinguished using 'objectclass_id').
+                    conditions.append( ObjectClass.objectclass_id == class_info.id )
+                except AttributeError:
+                    # The object does not have an attribute called 'objectclass_id' (because the
+                    # according table does not have it). No need to worry, just ignore it ...
+                    pass
+
+            object_classes.append( ObjectClass )
+
+        # Start a new database session if necessary.
+        if self.current_session is None: self.start_citydb_session()
+
+        filter_conditions = and_( *conditions )
+
+        query_result = self.current_session.query( *object_classes ).filter( filter_conditions ).all()
+
+        return \
+            [ result for result in query_result ] if result_index is None else \
+            [ result[result_index] for result in query_result ]
 
 
     def execute_function( self, func ):
@@ -223,10 +277,20 @@ class DBAccess:
         connection.commit()
 
 
-    def map_citydb_object_class( self, class_name, table_name = None, schema = None ):
+    def map_citydb_object_class( self, class_name, table_name = None, schema = None, user_defined = True ):
         # Check if ORM for 3DCityDB has already been initialized.
         if DBAccess.citydb_orm_mapping_init is False:
             self._init_citydb_orm()
+
+        if class_name not in DBAccess.citydb_objectclass_list and user_defined is True:
+            if table_name is None:
+                raise RuntimeError( 'a table name must be specified for user-defined mappings' )
+            if schema is None:
+                raise RuntimeError( 'a schema must be specified for user-defined mappings' )
+
+            # Add user-defined mapping to list.
+            DBAccess.citydb_objectclass_list[ class_name ] = \
+                ObjectClassInfo( id = None, schema = schema, table_name = table_name )
 
         try:
             # Retrieve class info.
@@ -245,7 +309,7 @@ class DBAccess:
                     if table_name is None: table_name = mapped_class_info.table_name
 
                     # Issue a warning, then re-map the class
-                    err = 'Class {} will has already been mapped from table: {} (schema: {}). '
+                    err = 'Class {} has already been mapped from table: {} (schema: {}). '
                     err += 'It will be re-mapped from table: {} (schema: {}).'
                     err = err.format( class_name, mapped_class_info.table_name,
                         mapped_class_info.schema, table_name, schema )
@@ -339,7 +403,7 @@ class DBAccess:
             ObjectClassInfo( id = None, table_name = 'cityobject_genericattrib_int', schema = 'citydb_view' )
         DBAccess.citydb_objectclass_list[ 'GenericAttributeString' ] = \
             ObjectClassInfo( id = None, table_name = 'cityobject_genericattrib_string', schema = 'citydb_view' )
-        
+
         # Set flag to indicate that mapping has been initialized.
         DBAccess.citydb_orm_mapping_init = True
 
