@@ -171,8 +171,8 @@ def write_terminal_element_to_db(
     :param terminal_type: type of terminal element (string)
     :param connected_bus: information about the bus this terminal element is connected to (dblayer.helpers.utn.electrical_network.BusData)
     :param spatial_reference_id: spatial reference ID for the network (int)
-    :param network_id: ID of the network, to which the network feature representing this bus will be added in the 3DCityDB (int)
-    :param network_graph_id: ID of the network graph, to which the feature graph of this bus will be added in the 3DCityDB (int)
+    :param network_id: ID of the network, to which the network feature representing this terminal element will be added in the 3DCityDB (int)
+    :param network_graph_id: ID of the network graph, to which the feature graph of this terminal element will be added in the 3DCityDB (int)
     :param cityobject_id: ID of associated city object (int, optional)
 
     :return: None
@@ -222,8 +222,8 @@ def write_line_to_db(
     :param max_i_ka: maximum thermal current in kA (float)
     :param line_type: line type (string)
     :param spatial_reference_id: spatial reference ID for the network (int)
-    :param network_id: ID of the network, to which the network feature representing this bus will be added in the 3DCityDB (int)
-    :param network_graph_id: ID of the network graph, to which the feature graph of this bus will be added in the 3DCityDB (int)
+    :param network_id: ID of the network, to which the network feature representing this line will be added in the 3DCityDB (int)
+    :param network_graph_id: ID of the network graph, to which the feature graph of this line will be added in the 3DCityDB (int)
 
     :return: None
     """
@@ -275,8 +275,8 @@ def write_switch_to_db(
     :param to_bus: information about the bus this switch is connected to (dblayer.helpers.utn.electrical_network.BusData)
     :param switch_type: type of switch (string)
     :param spatial_reference_id: spatial reference ID for the network (int)
-    :param network_id: ID of the network, to which the network feature representing this bus will be added in the 3DCityDB (int)
-    :param network_graph_id: ID of the network graph, to which the feature graph of this bus will be added in the 3DCityDB (int)
+    :param network_id: ID of the network, to which the network feature representing this switch will be added in the 3DCityDB (int)
+    :param network_graph_id: ID of the network graph, to which the feature graph of this switch will be added in the 3DCityDB (int)
 
     :return: None
     """
@@ -321,8 +321,8 @@ def write_transformer_to_db(
     :param lv_bus: information about the low-voltage bus this transformer is connected to (dblayer.helpers.utn.electrical_network.BusData)
     :param transformer_type: type of transformer (string)
     :param spatial_reference_id: spatial reference ID for the network (int)
-    :param network_id: ID of the network, to which the network feature representing this bus will be added in the 3DCityDB (int)
-    :param network_graph_id: ID of the network graph, to which the feature graph of this bus will be added in the 3DCityDB (int)
+    :param network_id: ID of the network, to which the network feature representing this transformer will be added in the 3DCityDB (int)
+    :param network_graph_id: ID of the network graph, to which the feature graph of this transformer will be added in the 3DCityDB (int)
 
     :return: None
     """
@@ -369,8 +369,8 @@ def write_load_to_db(
     :param p_kw: active power of the load in kW (float)
     :param p_kw: reactive power of the load in kvar (float)
     :param spatial_reference_id: spatial reference ID for the network (int)
-    :param network_id: ID of the network, to which the network feature representing this bus will be added in the 3DCityDB (int)
-    :param network_graph_id: ID of the network graph, to which the feature graph of this bus will be added in the 3DCityDB (int)
+    :param network_id: ID of the network, to which the network feature representing this load will be added in the 3DCityDB (int)
+    :param network_graph_id: ID of the network graph, to which the feature graph of this load will be added in the 3DCityDB (int)
 
     :return: None
     """
