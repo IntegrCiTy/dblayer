@@ -32,6 +32,74 @@ class BusData(
     __slots__ = ()
 
 
+def write_network_to_db(
+    db_access,
+    name,
+    type,
+    voltage_range_from = None,
+    voltage_range_to = None,
+    voltage_range_unit = None,
+    amperage_range_from = None,
+    amperage_range_to = None,
+    amperage_range_unit = None,
+    id = None
+    ) :
+    """
+    Insert a new empty electrical network (type 'Network') into the 3DCityDB. Automatically adds a commodity description (type 'ElectricalMedium') and an empty network graph (type 'NetworkGraph').
+
+    :param db_access: instance of class DBAccess, which is the basic interface of package dblayer to interface a 3DCityDB (dblayer.DBAccess)
+    :param name: name of the bus (string)
+    :param type: type of electrical network (string, either one of 'unknown', 'directCurrent', 'singlePhaseAlternatingCurrent', 'threePhaseAlternatingCurrent')
+    :param voltage_range_from: lower voltage range (optional, float)
+    :param voltage_range_to: upper voltage range (optional, float)
+    :param voltage_range_unit: voltage range unit (optional, string)
+    :param amperage_range_from: lower amperage range (optional, float)
+    :param amperage_range_to: upper amperage range (optional, float)
+    :param amperage_range_unit: amperage range unit (optional, string)
+    :param id: the network ID can be specified explicitely, otherwise an ID will be assigned automatically (optional, int)
+
+    :return (ntw_id, ntw_graph_id): network ID and network graph ID (tuple of int)
+    """
+
+    types = [
+        'unknown'
+        'directCurrent',
+        'singlePhaseAlternatingCurrent',
+        'threePhaseAlternatingCurrent'
+        ]
+
+    if not type in types:
+        raise RuntimeError( 'unknown type of electrical medium: {}'.format( type ) )
+
+    commodity_id = db_access.add_citydb_object(
+        insert_commodity_electrical_medium,
+        name = name + '_commodity',
+        type = type,
+        voltage_range_from = voltage_range_from,
+        voltage_range_to = voltage_range_to,
+        voltage_range_unit = voltage_range_unit,
+        amperage_range_from = amperage_range_from,
+        amperage_range_to = amperage_range_to,
+        amperage_range_unit = amperage_range_unit
+        )
+
+
+    ntw_id = db_access.add_citydb_object(
+        insert_network,
+        name = name,
+        id = id,
+        commodity_id = commodity_id
+        )
+
+    ntw_graph_id = db_access.add_citydb_object(
+        insert_network_graph,
+        name = name + '_graph',
+        network_id = ntw_id
+        )
+
+    return ( ntw_id, ntw_graph_id )
+
+
 def write_bus_to_db(
     db_access,
     name,

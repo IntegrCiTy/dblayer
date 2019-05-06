@@ -537,3 +537,46 @@ def insert_network_to_network_feature(
         network_id, # integer
         network_feature_id # integer
         )
+
+
+def insert_commodity_electrical_medium(
+    id = None,
+    gmlid = None,
+    gmlid_codespace = None,
+    name = None,
+    name_codespace = None,
+    description = None,
+    owner = None,
+    type = None,
+    voltage_range_from = None,
+    voltage_range_to = None,
+    voltage_range_unit = None,
+    amperage_range_from = None,
+    amperage_range_to = None,
+    amperage_range_unit = None,
+    bandwidth_range_from = None,
+    bandwidth_range_to = None,
+    bandwidth_range_unit = None
+    ):
+    '''
+    Insert commodity description for electrical medium.
+    '''
+    return func.citydb_view.utn9_insert_commodity_electrical_medium(
+        id, # integer, default: NULL::integer,
+        gmlid, # character varying, default: NULL::character varying,
+        gmlid_codespace, # character varying, default: NULL::character varying,
+        name, # character varying, default: NULL::character varying,
+        name_codespace, # character varying, default: NULL::character varying,
+        description, # text, default: NULL::text,
+        owner, # character varying, default: NULL::character varying,
+        type, # character varying, default: NULL::character varying,
+        voltage_range_from, # numeric, default: NULL::numeric,
+        voltage_range_to, # numeric, default: NULL::numeric,
+        voltage_range_unit, # character varying, default: NULL::character varying,
+        amperage_range_from, # numeric, default: NULL::numeric,
+        amperage_range_to, # numeric, default: NULL::numeric,
+        amperage_range_unit, # character varying, default: NULL::character varying,
+        bandwidth_range_from, # numeric, default: NULL::numeric,
+        bandwidth_range_to, # numeric, default: NULL::numeric,
+        bandwidth_range_unit # character varying, default: NULL::character varying
+        )
