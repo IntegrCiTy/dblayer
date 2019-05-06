@@ -561,7 +561,7 @@ class ElectricalSimModelDBReader( DBAccess, abc.ABC ):
                 name = line.name,
                 from_bus_id = connected_bus_ids[0],
                 to_bus_id = connected_bus_ids[1],
-                type = line.function,
+                type = getattr( line, 'class' ),
                 c_nf_per_km = self.line_c_nf_per_km[line.id],
                 r_ohm_per_km = self.line_r_ohm_per_km[line.id],
                 x_ohm_per_km = self.line_x_ohm_per_km[line.id],

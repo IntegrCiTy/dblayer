@@ -6,6 +6,8 @@ from .electrical_sim_model_db_reader import ElectricalSimModelDBReader
 # Import pandapower module.
 import pandapower as pp
 
+import warnings
+
 
 class PandaPowerModelDBReader( ElectricalSimModelDBReader ):
     """
@@ -51,12 +53,20 @@ class PandaPowerModelDBReader( ElectricalSimModelDBReader ):
 
         line_geodata = [ [ c.x, c.y ] for c in geodata ]
 
+        line_type = None
+        if type == 'cable':
+            line_type = 'cs'
+        elif type == 'line':
+            line_type = 'ol'
+        else:
+            warnings.warn( 'unknown line type: {}'.format( type ), RuntimeWarning )
+        
         pp.create_line_from_parameters(
                 net = net,
                 from_bus = from_bus,
                 to_bus = to_bus,
                 length_km = length_km,
-                type = type,
+                type = line_type,
                 c_nf_per_km = c_nf_per_km,
                 r_ohm_per_km = r_ohm_per_km,
                 x_ohm_per_km = x_ohm_per_km,

@@ -244,8 +244,7 @@ def write_line_to_db(
         line_segment,
         from_bus.node_id,
         to_bus.node_id,
-        class_name = 'line',
-        function = line_type
+        class_name = line_type
     )
 
     add_generic_attributes(
