@@ -12,7 +12,7 @@ from pygeoif import from_wkt
 
 class ElectricalSimModelDBReader( DBAccess, abc.ABC ):
     """
-    Construct a simulation model for an electrical entwork from information contained in the 3DCityDB.
+    Base class for constructing a simulation model for an electrical network from information contained in the 3DCityDB.
     """
 
     @abc.abstractmethod
@@ -27,11 +27,12 @@ class ElectricalSimModelDBReader( DBAccess, abc.ABC ):
 
     @abc.abstractmethod
     def add_bus(
-            self, net, name, type, vn_kv, geodata
-            ):
+        self, net, name, type, vn_kv, geodata
+        ):
         """
         Add an electrical bus to the simulation model.
 
+        :param net: simulation model
         :param name: name of the electrical bus (string)
         :param type: type of electrical bus (string)
         :param vn_kv: grid voltage level in kV (float)
@@ -44,13 +45,14 @@ class ElectricalSimModelDBReader( DBAccess, abc.ABC ):
 
     @abc.abstractmethod
     def add_line(
-            self, net, name, from_bus_id, to_bus_id, type,
-            c_nf_per_km, r_ohm_per_km, x_ohm_per_km, max_i_ka,
-            length_km, geodata
-            ):
+        self, net, name, from_bus_id, to_bus_id, type,
+        c_nf_per_km, r_ohm_per_km, x_ohm_per_km, max_i_ka,
+        length_km, geodata
+        ):
         """
         Add an electrical line to the simulation model.
 
+        :param net: simulation model
         :param name: name of the electrical line (string)
         :param from_bus_id: ID of connected bus (int)
         :param to_bus_id: ID of connected bus (int)
@@ -69,11 +71,12 @@ class ElectricalSimModelDBReader( DBAccess, abc.ABC ):
 
     @abc.abstractmethod
     def add_load(
-            self, net, name, bus_id, p_kw, q_kvar
-            ):
+        self, net, name, bus_id, p_kw, q_kvar
+        ):
         """
         Add an electrical load to the simulation model.
 
+        :param net: simulation model
         :param name: name of the electrical load (string)
         :param bus_id: ID of connected bus (int)
         :param p_kw: active power in kV (float)
@@ -86,11 +89,12 @@ class ElectricalSimModelDBReader( DBAccess, abc.ABC ):
 
     @abc.abstractmethod
     def add_transformer(
-            self, net, name, hv_bus_id, lv_bus_id, type
-            ):
+        self, net, name, hv_bus_id, lv_bus_id, type
+        ):
         """
         Add a transformer to the simulation model.
 
+        :param net: simulation model
         :param name: name of the transformer (string)
         :param hv_bus_id: ID of connected high-voltage bus (int)
         :param lv_bus_id: ID of connected low-voltage bus (int)
@@ -103,11 +107,12 @@ class ElectricalSimModelDBReader( DBAccess, abc.ABC ):
 
     @abc.abstractmethod
     def add_switch(
-            self, net, name, from_bus_id, to_bus_id, type
-            ):
+        self, net, name, from_bus_id, to_bus_id, type
+        ):
         """
         Add a switch to the simulation model.
 
+        :param net: simulation model
         :param name: name of the switch (string)
         :param from_bus_id: ID of connected bus (int)
         :param to_bus_id: ID of connected bus (int)
@@ -120,11 +125,12 @@ class ElectricalSimModelDBReader( DBAccess, abc.ABC ):
 
     @abc.abstractmethod
     def add_ext_grid(
-            self, net, name, bus_id
-            ):
+        self, net, name, bus_id
+        ):
         """
         Add an external grid to the simulation model.
 
+        :param net: simulation model
         :param name: name of the external grid (string)
         :param bus_id: ID of the connected bus (int)
 
@@ -546,9 +552,9 @@ class ElectricalSimModelDBReader( DBAccess, abc.ABC ):
             connected_bus_ids = all_bus_line_connections[line.id]
 
             if not len( connected_bus_ids ) == 2:
-                    raise RuntimeError(
-                        'line \'{}\' is not connected to 2 busses'.format( line.name )
-                        )
+                raise RuntimeError(
+                    'line \'{}\' is not connected to 2 busses'.format( line.name )
+                    )
 
             length = 1e-3 * self.execute_function( length_from_geom( line.geom ) )
 
@@ -757,9 +763,9 @@ class ElectricalSimModelDBReader( DBAccess, abc.ABC ):
             connected_bus_ids = all_bus_switch_connections[switch.id]
 
             if not len( connected_bus_ids ) == 2:
-                    raise RuntimeError(
-                        'switch \'{}\' is not connected to 2 busses'.format( switch.name )
-                        )
+                raise RuntimeError(
+                    'switch \'{}\' is not connected to 2 busses'.format( switch.name )
+                    )
 
             from_bus_id = connected_bus_ids[0]
             to_bus_id = connected_bus_ids[1]
