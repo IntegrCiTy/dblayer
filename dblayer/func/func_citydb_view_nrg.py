@@ -399,3 +399,68 @@ def insert_electrical_appliances(
         usage_zone_id, # integer, default:: NULL::integer
         building_unit_id # integer, NULL::integer
         )
+
+
+def insert_dhw_facilities(
+    id = None,
+    gmlid = None,
+    gmlid_codespace = None,
+    name = None,
+    name_codespace = None,
+    description = None,
+    envelope = None,
+    creation_date = None,
+    termination_date = None,
+    relative_to_terrain = None,
+    relative_to_water = None,
+    last_modification_date = None,
+    updating_person = None,
+    reason_for_update = None,
+    lineage = None,
+    heat_diss_tot_value = None,
+    heat_diss_tot_value_unit = None,
+    heat_diss_conv = None,
+    heat_diss_lat = None,
+    heat_diss_rad = None,
+    nbr_of_baths = None,
+    nbr_of_showers = None,
+    nbr_of_washbasins = None,
+    water_strg_vol = None,
+    water_strg_vol_unit = None,
+    oper_sched_id = None,
+    usage_zone_id = None,
+    building_unit_id = None
+    ):
+    '''
+    Define function call to onsert DHW facility.
+    '''
+    return func.citydb_view.nrg8_insert_dhw_facilities(
+        id, # integer, default: NULL::integer
+        gmlid, # character varying, default: NULL::character varying
+        gmlid_codespace, # character varying, default: NULL::character varying
+        name, # character varying, default: NULL::character varying
+        name_codespace, # character varying, default: NULL::character varying
+        description, # character varying, default: NULL::character varying
+        envelope, # geometry, default: NULL::geometry
+        creation_date, # timestamp with time zone, default: NULL::timestamp with time zone
+        termination_date, # timestamp with time zone, default: NULL::timestamp with time zone
+        relative_to_terrain, # character varying, default: NULL::character varying
+        relative_to_water, # character varying, default: NULL::character varying
+        last_modification_date, # timestamp with time zone, default: NULL::timestamp with time zone
+        updating_person, # character varying, default: NULL::character varying
+        reason_for_update, # character varying, default: NULL::character varying
+        lineage, # character varying, default: NULL::character varying
+        heat_diss_tot_value, # numeric, default: NULL::numeric
+        heat_diss_tot_value_unit, # character varying, default: NULL::character varying
+        heat_diss_conv, # numeric, default: NULL::numeric
+        heat_diss_lat, # numeric, default: NULL::numeric
+        heat_diss_rad, # numeric, default: NULL::numeric
+        nbr_of_baths, # integer, default: NULL::integer
+        nbr_of_showers, # integer, default: NULL::integer
+        nbr_of_washbasins, # integer, default: NULL::integer
+        water_strg_vol, # numeric, default: NULL::numeric
+        water_strg_vol_unit, # character varying, default: NULL::character varying
+        oper_sched_id, # integer, default: NULL::integer
+        usage_zone_id, # integer, default: NULL::integer
+        building_unit_id, # integer, default: NULL::integer
+        )

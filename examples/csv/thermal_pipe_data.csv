@@ -1,0 +1,17 @@
+name,from_node,to_node
+pipe-SRC-N0,source-SRC,node-N0
+pipe-N0-SNK1,node-N0,sink-SNK1
+pipe-N1-SNK2,node-N1,sink-SNK2
+pipe-N2-SNK3,node-N2,sink-SNK3
+pipe-N2-SNK4,node-N2,sink-SNK4
+pipe-N2-SNK5,node-N2,sink-SNK5
+pipe-N3-SNK6,node-N3,sink-SNK6
+pipe-N4-SNK7,node-N4,sink-SNK7
+pipe-N5-SNK8,node-N5,sink-SNK8
+pipe-N6-SNK9,node-N6,sink-SNK9
+pipe-N0-N1,node-N0,node-N1
+pipe-N1-N2,node-N1,node-N2
+pipe-N2-N3,node-N2,node-N3
+pipe-N3-N4,node-N3,node-N4
+pipe-N4-N5,node-N4,node-N5
+pipe-N5-N6,node-N5,node-N6

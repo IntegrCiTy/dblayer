@@ -1,0 +1,10 @@
+name,heat_diss_kw,x,y
+sink-SNK1,10.0,10,10
+sink-SNK2,20.0,20,10
+sink-SNK3,10.0,30,10
+sink-SNK4,50.0,25,-10
+sink-SNK5,10.0,35,-10
+sink-SNK6,20.0,40,10
+sink-SNK7,10.0,50,10
+sink-SNK8,30.0,60,10
+sink-SNK9,10.0,70,10

@@ -273,7 +273,8 @@ def insert_and_link_ntw_feature_2dlinestring(
         interfeature_link_type = link_type,
         start_node_id = start_node_id,
         end_node_id = start_link_node_id,
-        ntw_graph_id = network_graph_id
+        ntw_graph_id = network_graph_id,
+        link_control = 'start'
     )
 
     # Link the new network feature's least point of the line
@@ -284,7 +285,8 @@ def insert_and_link_ntw_feature_2dlinestring(
         interfeature_link_type = link_type,
         start_node_id = end_node_id,
         end_node_id = end_link_node_id,
-        ntw_graph_id = network_graph_id
+        ntw_graph_id = network_graph_id,
+        link_control = 'end'
     )
 
     return ( feature_id, feature_graph_id, start_node_id, end_node_id,

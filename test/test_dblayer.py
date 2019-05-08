@@ -7,8 +7,12 @@ from dblayer import *
 from dblayer.func.func_citydb_view import *
 from dblayer.func.func_citydb_view_nrg import *
 from dblayer.func.func_postgis_geom import *
-from dblayer.helpers.utn.electrical_network import *
 from dblayer.sim.pandapower import *
+from dblayer.sim.pandathermal import *
+
+import dblayer.helpers.utn.electrical_network as el_net
+import dblayer.helpers.utn.thermal_network as th_net
+
 
 import ictdeploy
 
@@ -107,8 +111,13 @@ def fix_create_sim():
 
 
 @pytest.fixture()
-def fix_network_id():
+def fix_el_network_id():
     return 1000
+
+
+@pytest.fixture()
+def fix_th_network_id():
+    return 2000
 
 
 def test_cleanup_citydb_schema( fix_access ):
@@ -194,7 +203,7 @@ def test_read_citydb( fix_access ):
             [ 'GenericAttribute', 'Building' ],
             conditions = [ GenericAttribute.cityobject_id == Building.id ]
             )
-        
+
         assert( len( attributes ) == 6 )
 
     # Check that only one warning was raised.
@@ -325,47 +334,51 @@ def test_geom_func( fix_connect, fix_access ):
         assert( str( e ) == 'first and last point do not coincide' )
 
 
-def test_fill_citydb_utn_electrical( fix_access, fix_network_id ):
+def test_fill_citydb_utn_electrical( fix_access, fix_el_network_id ):
 
     # Define spatial reference ID.
     srid = 25833
 
     # Create network and network graph.
-    ntw_id = fix_access.add_citydb_object( insert_network, name = 'test_network', id = fix_network_id )
-    ntw_graph_id = fix_access.add_citydb_object( insert_network_graph, name = 'test_network_graph', network_id = ntw_id )
+    ( ntw_id, ntw_graph_id ) = el_net.write_network_to_db(
+        fix_access,
+        name = 'test_el_network',
+        type = 'singlePhaseAlternatingCurrent',
+        id = fix_el_network_id
+        )
 
     # Add electrical busses.
-    bus_lv = write_bus_to_db( fix_access, 'bus-lv', 'busbar', Point2D( 2., 0. ), 0.4, srid, ntw_id, ntw_graph_id )
-    bus_mv = write_bus_to_db( fix_access, 'bus-mv', 'busbar', Point2D( 1., 0. ), 20., srid, ntw_id, ntw_graph_id )
-    bus_1 = write_bus_to_db( fix_access, 'bus-1', 'busbar', Point2D( 3., 0. ), 0.4, srid, ntw_id, ntw_graph_id )
-    bus_2 = write_bus_to_db( fix_access, 'bus-2', 'busbar', Point2D( 10., 0. ), 0.4, srid, ntw_id, ntw_graph_id )
+    bus_lv = el_net.write_bus_to_db( fix_access, 'bus-lv', 'busbar', Point2D( 2., 0. ), 0.4, srid, ntw_id, ntw_graph_id )
+    bus_mv = el_net.write_bus_to_db( fix_access, 'bus-mv', 'busbar', Point2D( 1., 0. ), 20., srid, ntw_id, ntw_graph_id )
+    bus_1 = el_net.write_bus_to_db( fix_access, 'bus-1', 'busbar', Point2D( 3., 0. ), 0.4, srid, ntw_id, ntw_graph_id )
+    bus_2 = el_net.write_bus_to_db( fix_access, 'bus-2', 'busbar', Point2D( 10., 0. ), 0.4, srid, ntw_id, ntw_graph_id )
 
     # Add transformer.
-    write_transformer_to_db( fix_access, 'trafo', bus_mv, bus_lv, '0.63 MVA 20/0.4 kV', srid, ntw_id, ntw_graph_id )
+    el_net.write_transformer_to_db( fix_access, 'trafo', bus_mv, bus_lv, '0.63 MVA 20/0.4 kV', srid, ntw_id, ntw_graph_id )
 
     # Add external grid.
-    write_terminal_element_to_db( fix_access, 'feeder', 'external-grid', bus_mv, srid, ntw_id, ntw_graph_id )
+    el_net.write_terminal_element_to_db( fix_access, 'feeder', 'external-grid', bus_mv, srid, ntw_id, ntw_graph_id )
 
     # Add switch.
-    write_switch_to_db( fix_access, 'switch', bus_lv, bus_1, 'CB', srid, ntw_id, ntw_graph_id )
+    el_net.write_switch_to_db( fix_access, 'switch', bus_lv, bus_1, 'CB', srid, ntw_id, ntw_graph_id )
 
     # Add electrical line.
-    write_line_to_db( fix_access, 'line', bus_1, bus_2, 0.01, 0.1, 0.05, 1., 'cs', srid, ntw_id, ntw_graph_id )
+    el_net.write_line_to_db( fix_access, 'line', bus_1, bus_2, 0.01, 0.1, 0.05, 1., 'cable', srid, ntw_id, ntw_graph_id )
 
     # Add electrical load.
-    write_load_to_db( fix_access, 'load', bus_2, 10., 0.1, srid, ntw_id, ntw_graph_id )
+    el_net.write_load_to_db( fix_access, 'load', bus_2, 10., 0.1, srid, ntw_id, ntw_graph_id )
 
     fix_access.commit_citydb_session()
 
 
-def test_sim_utn_electrical_pandapower( fix_connect, fix_network_id ):
+def test_sim_utn_electrical_pandapower( fix_connect, fix_el_network_id ):
 
     # Instantiate reader.
     pp_reader = PandaPowerModelDBReader( fix_connect )
 
     with pytest.warns( RuntimeWarning ) as record:
         # Create simulation model from database.
-        net = pp_reader.get_net( network_id = fix_network_id )
+        net = pp_reader.get_net( network_id = fix_el_network_id )
 
     assert( len( record ) == 1 )
 
@@ -391,3 +404,97 @@ def test_sim_utn_electrical_pandapower( fix_connect, fix_network_id ):
     assert( net.res_bus.iloc[bus_2_id].va_degree == pytest.approx( -0.058996, 1e-4 ) )
     assert( net.res_line.iloc[0].i_ka == pytest.approx( 0.014438, 1e-4 ) )
     assert( net.res_line.iloc[0].loading_percent == pytest.approx( 1.443825, 1e-4 ) )
+
+
+def test_fill_citydb_utn_thermal( fix_access, fix_th_network_id ):
+
+    # Define spatial reference ID.
+    srid = 25833
+
+    # Create network and network graph.
+    ( ntw_id, ntw_graph_id ) = th_net.write_network_to_db(
+        fix_access,
+        name = 'test_th_network',
+        id = fix_th_network_id
+        )
+
+    # Dict for most relevant data of thermal nodes.
+    nodes_data = {}
+
+    # Add thermal source.
+    nodes_data['SRCE'] = th_net.write_terminal_element_to_db( fix_access, 'SRCE', Point2D( 0., 0. ), 'thermal-source', srid, ntw_id, ntw_graph_id )
+
+    # Add thermal sinks.
+    nodes_data['SNK1'] = th_net.write_dhw_sink_to_db( fix_access, 'SNK1', Point2D( 10, 10 ), 10., 'kW', srid, ntw_id, ntw_graph_id )
+    nodes_data['SNK2'] = th_net.write_dhw_sink_to_db( fix_access, 'SNK2', Point2D( 20, 10 ), 20., 'kW', srid, ntw_id, ntw_graph_id )
+    nodes_data['SNK3'] = th_net.write_dhw_sink_to_db( fix_access, 'SNK3', Point2D( 30, 10 ), 10., 'kW', srid, ntw_id, ntw_graph_id )
+    nodes_data['SNK4'] = th_net.write_dhw_sink_to_db( fix_access, 'SNK4', Point2D( 25, -10 ), 50., 'kW', srid, ntw_id, ntw_graph_id )
+    nodes_data['SNK5'] = th_net.write_dhw_sink_to_db( fix_access, 'SNK5', Point2D( 35, -10 ), 10., 'kW', srid, ntw_id, ntw_graph_id )
+    nodes_data['SNK6'] = th_net.write_dhw_sink_to_db( fix_access, 'SNK6', Point2D( 40, 10 ), 20., 'kW', srid, ntw_id, ntw_graph_id )
+    nodes_data['SNK7'] = th_net.write_dhw_sink_to_db( fix_access, 'SNK7', Point2D( 50, 10 ), 10., 'kW', srid, ntw_id, ntw_graph_id )
+    nodes_data['SNK8'] = th_net.write_dhw_sink_to_db( fix_access, 'SNK8', Point2D( 60, 10 ), 30., 'kW', srid, ntw_id, ntw_graph_id )
+    nodes_data['SNK9'] = th_net.write_dhw_sink_to_db( fix_access, 'SNK9', Point2D( 70, 10 ), 10., 'kW', srid, ntw_id, ntw_graph_id )
+
+    # Add pipe junctions.
+    nodes_data['N0'] = th_net.write_junction_to_db( fix_access, 'N0', Point2D( 10, 0 ), srid, ntw_id, ntw_graph_id )
+    nodes_data['N1'] = th_net.write_junction_to_db( fix_access, 'N1', Point2D( 20, 0 ), srid, ntw_id, ntw_graph_id )
+    nodes_data['N2'] = th_net.write_junction_to_db( fix_access, 'N2', Point2D( 30, 0 ), srid, ntw_id, ntw_graph_id )
+    nodes_data['N3'] = th_net.write_junction_to_db( fix_access, 'N3', Point2D( 40, 0 ), srid, ntw_id, ntw_graph_id )
+    nodes_data['N4'] = th_net.write_junction_to_db( fix_access, 'N4', Point2D( 50, 0 ), srid, ntw_id, ntw_graph_id )
+    nodes_data['N5'] = th_net.write_junction_to_db( fix_access, 'N5', Point2D( 60, 0 ), srid, ntw_id, ntw_graph_id )
+    nodes_data['N6'] = th_net.write_junction_to_db( fix_access, 'N6', Point2D( 70, 0 ), srid, ntw_id, ntw_graph_id )
+
+    # Add pipes.
+    th_net.write_round_pipe_to_db( fix_access, 'SRCE-N0', nodes_data['SRCE'], nodes_data['N0'], srid, ntw_id, ntw_graph_id, 'distribution-pipe' )
+    th_net.write_round_pipe_to_db( fix_access, 'N0-SNK1', nodes_data['N0'], nodes_data['SNK1'], srid, ntw_id, ntw_graph_id, 'distribution-pipe' )
+    th_net.write_round_pipe_to_db( fix_access, 'N1-SNK2', nodes_data['N1'], nodes_data['SNK2'], srid, ntw_id, ntw_graph_id, 'distribution-pipe' )
+    th_net.write_round_pipe_to_db( fix_access, 'N2-SNK3', nodes_data['N2'], nodes_data['SNK3'], srid, ntw_id, ntw_graph_id, 'distribution-pipe' )
+    th_net.write_round_pipe_to_db( fix_access, 'N2-SNK4', nodes_data['N2'], nodes_data['SNK4'], srid, ntw_id, ntw_graph_id, 'distribution-pipe' )
+    th_net.write_round_pipe_to_db( fix_access, 'N2-SNK5', nodes_data['N2'], nodes_data['SNK5'], srid, ntw_id, ntw_graph_id, 'distribution-pipe' )
+    th_net.write_round_pipe_to_db( fix_access, 'N3-SNK6', nodes_data['N3'], nodes_data['SNK6'], srid, ntw_id, ntw_graph_id, 'distribution-pipe' )
+    th_net.write_round_pipe_to_db( fix_access, 'N4-SNK7', nodes_data['N4'], nodes_data['SNK7'], srid, ntw_id, ntw_graph_id, 'distribution-pipe' )
+    th_net.write_round_pipe_to_db( fix_access, 'N5-SNK8', nodes_data['N5'], nodes_data['SNK8'], srid, ntw_id, ntw_graph_id, 'distribution-pipe' )
+    th_net.write_round_pipe_to_db( fix_access, 'N6-SNK9', nodes_data['N6'], nodes_data['SNK9'], srid, ntw_id, ntw_graph_id, 'distribution-pipe' )
+    th_net.write_round_pipe_to_db( fix_access, 'N0-N1', nodes_data['N0'], nodes_data['N1'], srid, ntw_id, ntw_graph_id, 'distribution-pipe' )
+    th_net.write_round_pipe_to_db( fix_access, 'N1-N2', nodes_data['N1'], nodes_data['N2'], srid, ntw_id, ntw_graph_id, 'distribution-pipe' )
+    th_net.write_round_pipe_to_db( fix_access, 'N2-N3', nodes_data['N2'], nodes_data['N3'], srid, ntw_id, ntw_graph_id, 'distribution-pipe' )
+    th_net.write_round_pipe_to_db( fix_access, 'N3-N4', nodes_data['N3'], nodes_data['N4'], srid, ntw_id, ntw_graph_id, 'distribution-pipe' )
+    th_net.write_round_pipe_to_db( fix_access, 'N4-N5', nodes_data['N4'], nodes_data['N5'], srid, ntw_id, ntw_graph_id, 'distribution-pipe' )
+    th_net.write_round_pipe_to_db( fix_access, 'N5-N6', nodes_data['N5'], nodes_data['N6'], srid, ntw_id, ntw_graph_id, 'distribution-pipe' )
+
+    fix_access.commit_citydb_session()
+
+
+def test_sim_utn_thermal_pandathermal( fix_connect, fix_th_network_id ):
+
+    # Instantiate reader.
+    pth_reader = PandaThermalModelDBReader( fix_connect )
+
+    # Create simulation model from database.
+    net = pth_reader.get_net( network_id = fix_th_network_id )
+
+    # Check number of elements in the simulation model.
+    assert( len( net.nodes ) == 17 )
+    assert( len( net.edges ) == 16 )
+
+    # Calculate the maximal mass flows.
+    pipes_max_m_dot = pth.compute_pipes_max_m_dot( net, dt=40 )
+
+    print(pipes_max_m_dot)
+    # Check results.
+    assert( pipes_max_m_dot[('SRCE', 'N0')] == pytest.approx( 0.81, 1e-4 ) )
+    assert( pipes_max_m_dot[('N0','SNK1')] == pytest.approx( 0.05, 1e-4 ) )
+    assert( pipes_max_m_dot[('N0','N1')] == pytest.approx( 0.76, 1e-4 ) )
+    assert( pipes_max_m_dot[('N1','SNK2')] == pytest.approx( 0.10, 1e-4 ) )
+    assert( pipes_max_m_dot[('N1','N2')] == pytest.approx( 0.67, 1e-4 ) )
+    assert( pipes_max_m_dot[('N2','SNK3')] == pytest.approx( 0.05, 1e-4 ) )
+    assert( pipes_max_m_dot[('N2','SNK4')] == pytest.approx( 0.24, 1e-4 ) )
+    assert( pipes_max_m_dot[('N2','SNK5')] == pytest.approx( 0.05, 1e-4 ) )
+    assert( pipes_max_m_dot[('N2','N3')] == pytest.approx( 0.33, 1e-4 ) )
+    assert( pipes_max_m_dot[('N3','SNK6')] == pytest.approx( 0.10, 1e-4 ) )
+    assert( pipes_max_m_dot[('N3','N4')] == pytest.approx( 0.24, 1e-4 ) )
+    assert( pipes_max_m_dot[('N4','SNK7')] == pytest.approx( 0.05, 1e-4 ) )
+    assert( pipes_max_m_dot[('N4','N5')] == pytest.approx( 0.19, 1e-4 ) )
+    assert( pipes_max_m_dot[('N5','N6')] == pytest.approx( 0.05, 1e-4 ) )
+    assert( pipes_max_m_dot[('N5','SNK8')] == pytest.approx( 0.14, 1e-4 ) )
+    assert( pipes_max_m_dot[('N6','SNK9')] == pytest.approx( 0.05, 1e-4 ) )

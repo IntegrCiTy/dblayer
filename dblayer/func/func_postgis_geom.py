@@ -13,6 +13,8 @@ class Point2D( namedtuple( 'Point2D_Tuple', [ 'x', 'y' ] ) ):
 
     __slots__ = ()
 
+    def list( self ): return [ self.x, self.y ]
+
 
 def geom_from_text(
     well_known_text,
