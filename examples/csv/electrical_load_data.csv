@@ -1,0 +1,16 @@
+name,bus,p_kw,q_kvar,scaling
+load-R1,bus-R1-LV,10.0,1.0,1.0
+load-R11,bus-R11-LV,10.0,1.0,1.0
+load-R15,bus-R15-LV,10.0,1.0,1.0
+load-R16,bus-R16-LV,10.0,1.0,1.0
+load-R17,bus-R17-LV,10.0,1.0,1.0
+load-R18,bus-R18-LV,10.0,1.0,1.0
+load-I2,bus-I2-LV,10.0,1.0,1.0
+load-C1,bus-C1-LV,10.0,1.0,1.0
+load-C12,bus-C12-LV,10.0,1.0,1.0
+load-C13,bus-C13-LV,10.0,1.0,1.0
+load-C14,bus-C14-LV,10.0,1.0,1.0
+load-C17,bus-C17-LV,10.0,1.0,1.0
+load-C18,bus-C18-LV,10.0,1.0,1.0
+load-C19,bus-C19-LV,10.0,1.0,1.0
+load-C20,bus-C20-LV,10.0,1.0,1.0

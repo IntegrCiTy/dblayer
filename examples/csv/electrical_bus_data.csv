@@ -1,0 +1,45 @@
+name,type,vn_kv,x,y
+bus-0-MV,busbar,20.0,0,0
+bus-R0-MV,busbar,20.0,1,0
+bus-R1-LV,busbar,0.4,2,0
+bus-R2-LV,plate,0.4,37,0
+bus-R3-LV,plate,0.4,72,0
+bus-R4-LV,plate,0.4,107,0
+bus-R5-LV,plate,0.4,142,0
+bus-R6-LV,plate,0.4,177,0
+bus-R7-LV,plate,0.4,212,0
+bus-R8-LV,plate,0.4,247,0
+bus-R9-LV,plate,0.4,282,0
+bus-R10-LV,plate,0.4,317,0
+bus-R11-LV,supply point,0.4,72,30
+bus-R12-LV,plate,0.4,107,-35
+bus-R13-LV,plate,0.4,107,-70
+bus-R14-LV,plate,0.4,107,-105
+bus-R15-LV,supply point,0.4,137,-105
+bus-R16-LV,supply point,0.4,177,30
+bus-R17-LV,supply point,0.4,282,-30
+bus-R18-LV,supply point,0.4,317,30
+bus-I0-MV,busbar,20.0,0,1
+bus-I1-LV,busbar,0.4,0,2
+bus-I2-LV,supply point,0.4,0,202
+bus-C0-MV,busbar,20.0,-1,0
+bus-C1-LV,busbar,0.4,-2,0
+bus-C2-LV,pole,0.4,-32,0
+bus-C3-LV,pole,0.4,-62,0
+bus-C4-LV,pole,0.4,-92,0
+bus-C5-LV,pole,0.4,-122,0
+bus-C6-LV,pole,0.4,-152,0
+bus-C7-LV,pole,0.4,-182,0
+bus-C8-LV,pole,0.4,-212,0
+bus-C9-LV,pole,0.4,-242,0
+bus-C10-LV,pole,0.4,-62,30
+bus-C11-LV,pole,0.4,-62,60
+bus-C12-LV,supply point,0.4,-62,90
+bus-C13-LV,supply point,0.4,-92,60
+bus-C14-LV,supply point,0.4,-92,30
+bus-C15-LV,pole,0.4,-122,-30
+bus-C16-LV,pole,0.4,-122,-60
+bus-C17-LV,supply point,0.4,-152,-60
+bus-C18-LV,supply point,0.4,-152,-30
+bus-C19-LV,supply point,0.4,-212,30
+bus-C20-LV,supply point,0.4,-242,-30
