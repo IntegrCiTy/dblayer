@@ -366,6 +366,7 @@ def write_load_to_db(
 
     :param db_access: instance of class DBAccess, which is the basic interface of package dblayer to interface a 3DCityDB (dblayer.DBAccess)
     :param name: name of the load (string)
+    :param bus: information about the bus this load is connected to (dblayer.helpers.utn.electrical_network.BusData)
     :param p_kw: active power of the load in kW (float)
     :param p_kw: reactive power of the load in kvar (float)
     :param spatial_reference_id: spatial reference ID for the network (int)

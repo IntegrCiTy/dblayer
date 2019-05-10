@@ -1,28 +1,24 @@
 #!/usr/bin/env python
 # coding: utf-8
 
-import abc
-
-from dblayer import *
-from dblayer.func.func_postgis_geom import *
-from sqlalchemy import or_
-
-from pygeoif import from_wkt
+from .sim_model_db_reader_base import *
 
 
-class ThermalSimModelDBReader( DBAccess, abc.ABC ):
+class ThermalSimModelDBReader( SimModelDBReaderBase ):
     """
-    Case class for constructing a simulation model for a thermal network from information contained in the 3DCityDB.
+    Base class for constructing a simulation model for a thermal network from information contained in the 3DCityDB.
     """
 
-    @abc.abstractmethod
-    def create_empty_network( self ):
+    def __init__( self, connect, verbose=False ):
         """
-        Create an empty network model.
+        Constructor.
 
-        :return: empty network model
+        :param connect: tuple containing connection parameters for database (PostgreSQLConnectionInfo)
+        :param verbose: turn verbosity on/off (bool, optional, default=False)
         """
-        pass
+
+        super().__init__( connect )
+        self.verbose = verbose
 
 
     @abc.abstractmethod
@@ -91,19 +87,6 @@ class ThermalSimModelDBReader( DBAccess, abc.ABC ):
         :return: None
         """
         pass
-
-
-    def __init__( self, connect, verbose = False ):
-        """
-        Constructor.
-
-        :param connect: tuple containing connection parameters for database (PostgreSQLConnectionInfo)
-        :param verbose: turn verbosity on/off (bool, optional, default = False)
-        """
-
-        super().__init__()
-        self.connect_to_citydb( connect )
-        self.verbose = verbose
 
 
     def get_net( self, network_id ):
@@ -207,7 +190,7 @@ class ThermalSimModelDBReader( DBAccess, abc.ABC ):
         After mapping the classes, retrieve all relevant data associated to network features.
         """
 
-        self.thermal_sources = self.join_citydb_objects(
+        self.sources = self.join_citydb_objects(
             [ 'TerminalElement', 'NetworkToFeature' ],
             conditions = [
                 getattr( self.TerminalElement, 'class' ) == 'thermal-source',
@@ -289,12 +272,6 @@ class ThermalSimModelDBReader( DBAccess, abc.ABC ):
             result_index = 0
             )
 
-        # Map feature graph IDs to their associated network feature IDs.
-        self.feature_ids = { feature_graph.id: feature_graph.ntw_feature_id  for feature_graph in self.feature_graphs }
-
-        # Map feature graph node IDs to the name of the feature graph node.
-        self.node_names = { node.id : node.name for node in self.nodes }
-
 
     def _retrieve_data_generic_attributes( self, network_id ):
         """
@@ -309,27 +286,14 @@ class ThermalSimModelDBReader( DBAccess, abc.ABC ):
         Add thermal sources to network.
         """
 
-        # Create dict of IDs and names for all thermal sources.
-        src_ids = { src.id: src.name for src in self.thermal_sources }
-
-        # Create dict of IDs of thermal sources and associated feature graphs.
-        src_feature_graph_ids = {
-            feature_graph.id: feature_graph.ntw_feature_id
-            for feature_graph in self.feature_graphs
-            if feature_graph.ntw_feature_id in src_ids }
-
-        # Create dict of IDs of feature graph nodes and feature graphs associated with thermal sources.
-        src_node_ids = {
-            node.id : src_feature_graph_ids[node.feat_graph_id]
-            for node in self.nodes
-            if node.feat_graph_id in src_feature_graph_ids
-            }
+        ( src_ids, src_feature_graph_ids, src_node_ids ) = \
+            self._retrieve_feature_data( self.sources, self.feature_graphs, self.nodes )
 
         # Add thermal sources to dicts.
         self.feature_names.update( src_ids )
         self.feature_graph_ids.update( src_node_ids )
 
-        for src in self.thermal_sources:
+        for src in self.sources:
 
             self.add_thermal_source(
                 net = net,
@@ -348,21 +312,8 @@ class ThermalSimModelDBReader( DBAccess, abc.ABC ):
             for dhw_facility in self.dhw_facilities
             }
 
-        # Create dict of IDs and names for all thermal sinks.
-        sink_ids = { sink.id: sink.name for sink in self.sinks }
-
-        # Create dict of IDs of thermal sinks and associated feature graphs.
-        sink_feature_graph_ids = {
-            feature_graph.id: feature_graph.ntw_feature_id
-            for feature_graph in self.feature_graphs
-            if feature_graph.ntw_feature_id in sink_ids }
-
-        # Create dict of IDs of feature graph nodes and feature graphs associated with thermal sinks.
-        sink_node_ids = {
-            node.id : sink_feature_graph_ids[node.feat_graph_id]
-            for node in self.nodes
-            if node.feat_graph_id in sink_feature_graph_ids
-            }
+        ( sink_ids, sink_feature_graph_ids, sink_node_ids ) = \
+            self._retrieve_feature_data( self.sinks, self.feature_graphs, self.nodes )
 
         # Add thermal sinks to dicts.
         self.feature_names.update( sink_ids )
@@ -385,21 +336,8 @@ class ThermalSimModelDBReader( DBAccess, abc.ABC ):
         Add pipe junctions to network.
         """
 
-        # Create dict of IDs and names for all pipe junctions.
-        junction_ids = { junction.id: junction.name for junction in self.junctions }
-
-        # Create dict of IDs of pipe junctions and associated feature graphs.
-        junction_feature_graph_ids = {
-            feature_graph.id: feature_graph.ntw_feature_id
-            for feature_graph in self.feature_graphs
-            if feature_graph.ntw_feature_id in junction_ids }
-
-        # Create dict of IDs of feature graph nodes and feature graphs associated with pipe junctions.
-        junction_node_ids = {
-            node.id : junction_feature_graph_ids[node.feat_graph_id]
-            for node in self.nodes
-            if node.feat_graph_id in junction_feature_graph_ids
-            }
+        ( junction_ids, junction_feature_graph_ids, junction_node_ids ) = \
+            self._retrieve_feature_data( self.junctions, self.feature_graphs, self.nodes )
 
         # Add pipe junctions to dicts.
         self.feature_names.update( junction_ids )
@@ -419,44 +357,13 @@ class ThermalSimModelDBReader( DBAccess, abc.ABC ):
         Add pipes to network.
         """
 
-        pipe_ids = [ pipe.id for pipe in self.pipes ]
+        ( pipe_ids, pipe_feature_graph_ids, pipe_node_ids ) = \
+            self._retrieve_feature_data( self.pipes, self.feature_graphs, self.nodes )
 
-        pipe_feature_graph_ids = {
-            feature_graph.id: feature_graph.ntw_feature_id
-            for feature_graph in self.feature_graphs
-            if feature_graph.ntw_feature_id in pipe_ids
-            }
-
-        pipe_node_ids = {
-            node.id : pipe_feature_graph_ids[node.feat_graph_id]
-            for node in self.nodes
-            if node.feat_graph_id in pipe_feature_graph_ids
-            }
-
-        node_to_pipe_connections = [
-            ( pipe_node_ids[link.end_node_id], self.feature_graph_ids[link.start_node_id], link.link_control )
-            for link in self.inter_feature_links
-            if link.start_node_id in self.feature_graph_ids
-            and link.end_node_id in pipe_node_ids
-            ]
-
-        pipe_to_node_connections = [
-            ( pipe_node_ids[link.start_node_id], self.feature_graph_ids[link.end_node_id], link.link_control )
-            for link in self.inter_feature_links
-            if link.start_node_id in pipe_node_ids
-            and link.end_node_id in self.feature_graph_ids
-            ]
-
-        all_node_pipe_connections = {}
-
-        for connection in ( node_to_pipe_connections + pipe_to_node_connections ):
-            pipe_id = connection[0]
-            node_id = connection[1]
-            link_control = connection[2]
-            if not pipe_id in all_node_pipe_connections:
-                all_node_pipe_connections[pipe_id] = [ ( node_id, link_control ) ]
-            else:
-                all_node_pipe_connections[pipe_id].append( ( node_id, link_control ) )
+        all_node_pipe_connections = \
+            self._retrieve_connections_with_link_control(
+                self.feature_graph_ids, pipe_node_ids, self.inter_feature_links
+                )
 
         for pipe in self.pipes:
             connected_node_ids = all_node_pipe_connections[pipe.id]
@@ -491,15 +398,3 @@ class ThermalSimModelDBReader( DBAccess, abc.ABC ):
                 length_km = length,
                 geodata = pipe_geomdata
                 )
-
-
-    def geom_to_point2d( self, geom ):
-        geom_wkt = self.execute_function( geom_as_text( geom ) )
-        ( x, y,z ) = from_wkt( geom_wkt ).coords[0]
-        return Point2D( x, y )
-
-
-    def geom_to_list_point2d( self, geom ):
-        geom_wkt = self.execute_function( geom_as_text( geom ) )
-        coords = from_wkt( geom_wkt ).coords
-        return [ Point2D( c[0], c[1] ) for c in coords ]

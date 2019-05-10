@@ -1,29 +1,14 @@
 #!/usr/bin/env python
 # coding: utf-8
 
-import abc
-
-from dblayer import *
-from dblayer.func.func_postgis_geom import *
+from .sim_model_db_reader_base import *
 from sqlalchemy import or_
 
-from pygeoif import from_wkt
 
-
-class ElectricalSimModelDBReader( DBAccess, abc.ABC ):
+class ElectricalSimModelDBReader( SimModelDBReaderBase ):
     """
     Base class for constructing a simulation model for an electrical network from information contained in the 3DCityDB.
     """
-
-    @abc.abstractmethod
-    def create_empty_network( self ):
-        """
-        Create an empty network model.
-
-        :return: empty network model
-        """
-        pass
-
 
     @abc.abstractmethod
     def add_bus(
@@ -139,20 +124,9 @@ class ElectricalSimModelDBReader( DBAccess, abc.ABC ):
         pass
 
 
-    def __init__( self, connect ):
-        """
-        Constructor.
-
-        :param connect: tuple containing connection parameters for database (PostgreSQLConnectionInfo)
-        """
-
-        super().__init__()
-        self.connect_to_citydb( connect )
-
-
     def get_net( self, network_id ):
         """
-        Retrieve the electrical network as pandapower model.
+        Retrieve the simulation model for the electrical network.
         """
 
         # Map structure from database to classes.
@@ -162,11 +136,6 @@ class ElectricalSimModelDBReader( DBAccess, abc.ABC ):
         self._retrieve_data_network_features( network_id )
         self._retrieve_data_feature_graphs( network_id )
         self._retrieve_data_generic_attributes( network_id )
-
-        # From a topological point of view, the busses are the most important
-        # features of the network to which everything is connected. For this
-        # reason, additional bus data has to be extracted and stored.
-        self._extract_bus_topological_data()
 
         # Create empty network model.
         net = self.create_empty_network()
@@ -366,12 +335,6 @@ class ElectricalSimModelDBReader( DBAccess, abc.ABC ):
             result_index = 0
             )
 
-        # Map feature graph IDs to their associated network feature IDs.
-        self.feature_ids = { feature_graph.id: feature_graph.ntw_feature_id  for feature_graph in self.feature_graphs }
-
-        # Map feature graph node IDs to the name of the feature graph node.
-        self.node_names = { node.id : node.name for node in self.nodes }
-
 
     def _retrieve_data_generic_attributes( self, network_id ):
         """
@@ -463,32 +426,13 @@ class ElectricalSimModelDBReader( DBAccess, abc.ABC ):
             }
 
 
-    def _extract_bus_topological_data( self ):
-        """
-        From a topological point of view, the busses are the most important features of the network to which everything is connected. For this reason, additional bus data has to be extracted and stored.
-        """
-
-        # Create dict of IDs and names for all busses.
-        self.bus_ids_and_names = { bus.id: bus.name for bus in self.busses }
-
-        # Create dict of IDs of busses and associated feature graphs.
-        self.bus_feature_graph_ids = {
-            feature_graph.id: feature_graph.ntw_feature_id
-            for feature_graph in self.feature_graphs
-            if feature_graph.ntw_feature_id in self.bus_ids_and_names }
-
-        # Create dict of IDs of nodes and feature graphs associated with busses.
-        self.bus_node_ids = {
-            node.id : self.bus_feature_graph_ids[node.feat_graph_id]
-            for node in self.nodes
-            if node.feat_graph_id in self.bus_feature_graph_ids
-            }
-
-
     def _add_busses( self, net ):
         """
         Add busses to network.
         """
+        
+        ( self.bus_ids_and_names, bus_feature_graph_ids, self.bus_node_ids ) = \
+            self._retrieve_feature_data( self.busses, self.feature_graphs, self.nodes )
 
         for bus in self.busses:
             bus_geom_wkt = self.execute_function( geom_as_text( bus.geom ) )
@@ -510,43 +454,11 @@ class ElectricalSimModelDBReader( DBAccess, abc.ABC ):
         Add lines to network.
         """
 
-        line_ids = [ line.id for line in self.lines ]
+        ( line_ids, line_feature_graph_ids, line_node_ids ) = \
+            self._retrieve_feature_data( self.lines, self.feature_graphs, self.nodes )
 
-        line_feature_graph_ids = {
-            feature_graph.id: feature_graph.ntw_feature_id
-            for feature_graph in self.feature_graphs
-            if feature_graph.ntw_feature_id in line_ids
-            }
-
-        line_node_ids = {
-            node.id : line_feature_graph_ids[node.feat_graph_id]
-            for node in self.nodes
-            if node.feat_graph_id in line_feature_graph_ids
-            }
-
-        bus_to_line_connections = [
-            ( line_node_ids[link.end_node_id], self.bus_node_ids[link.start_node_id] )
-            for link in self.inter_feature_links
-            if link.start_node_id in self.bus_node_ids
-            and link.end_node_id in line_node_ids
-            ]
-
-        line_to_bus_connections = [
-            ( line_node_ids[link.start_node_id], self.bus_node_ids[link.end_node_id] )
-            for link in self.inter_feature_links
-            if link.start_node_id in line_node_ids
-            and link.end_node_id in self.bus_node_ids
-            ]
-
-        all_bus_line_connections = {}
-
-        for connection in ( bus_to_line_connections + line_to_bus_connections ):
-            line_id = connection[0]
-            bus_id = connection[1]
-            if not line_id in all_bus_line_connections:
-                all_bus_line_connections[line_id] = [bus_id]
-            else:
-                all_bus_line_connections[line_id].append(bus_id)
+        all_bus_line_connections = \
+            self._retrieve_connections( self.bus_node_ids, line_node_ids, self.inter_feature_links )
 
         for line in self.lines:
             connected_bus_ids = all_bus_line_connections[line.id]
@@ -582,50 +494,16 @@ class ElectricalSimModelDBReader( DBAccess, abc.ABC ):
         Add loads to network.
         """
 
-        load_ids = [ load.id for load in self.loads ]
+        ( load_ids, load_feature_graph_ids, load_node_ids ) = \
+            self._retrieve_feature_data( self.loads, self.feature_graphs, self.nodes )
+
+        all_bus_load_connections = \
+            self._retrieve_unique_connections( self.bus_node_ids, load_node_ids, self.inter_feature_links )
 
         elec_appliance_ids = {
             appliance.id: appliance
             for appliance in self.electrical_appliances
             }
-
-        load_feature_graph_ids = {
-            feature_graph.id: feature_graph.ntw_feature_id
-            for feature_graph in self.feature_graphs
-            if feature_graph.ntw_feature_id in load_ids
-            }
-
-        load_node_ids = {
-            node.id : load_feature_graph_ids[node.feat_graph_id]
-            for node in self.nodes
-            if node.feat_graph_id in load_feature_graph_ids
-            }
-
-        bus_to_load_connections = [
-            ( load_node_ids[link.end_node_id], self.bus_node_ids[link.start_node_id] )
-            for link in self.inter_feature_links
-            if link.start_node_id in self.bus_node_ids
-            and link.end_node_id in load_node_ids
-            ]
-
-        load_to_bus_connections = [
-            ( load_node_ids[link.start_node_id], self.bus_node_ids[link.end_node_id] )
-            for link in self.inter_feature_links
-            if link.start_node_id in load_node_ids
-            and link.end_node_id in self.bus_node_ids
-            ]
-
-        all_bus_load_connections = {}
-
-        for connection in ( bus_to_load_connections + load_to_bus_connections ):
-            load_id = connection[0]
-            bus_id = connection[1]
-            if not load_id in all_bus_load_connections:
-                all_bus_load_connections[load_id] = bus_id
-            else:
-                raise RuntimeError(
-                    'load with ID {} is connected to more than 1 bus'.format( load_id )
-                    )
 
         for load in self.loads:
             connected_bus_id = all_bus_load_connections[load.id]
@@ -645,43 +523,11 @@ class ElectricalSimModelDBReader( DBAccess, abc.ABC ):
         Add transfomers to network.
         """
 
-        trafo_ids = [ trafo.id for trafo in self.trafos ]
+        ( trafo_ids, trafo_feature_graph_ids, trafo_node_ids ) = \
+            self._retrieve_feature_data( self.trafos, self.feature_graphs, self.nodes )
 
-        trafo_feature_graph_ids = {
-            feature_graph.id: feature_graph.ntw_feature_id
-            for feature_graph in self.feature_graphs
-            if feature_graph.ntw_feature_id in trafo_ids
-            }
-
-        trafo_node_ids = {
-            node.id : trafo_feature_graph_ids[node.feat_graph_id]
-            for node in self.nodes
-            if node.feat_graph_id in trafo_feature_graph_ids
-            }
-
-        bus_to_trafo_connections = [
-            ( trafo_node_ids[link.end_node_id], self.bus_node_ids[link.start_node_id] )
-            for link in self.inter_feature_links
-            if link.start_node_id in self.bus_node_ids
-            and link.end_node_id in trafo_node_ids
-            ]
-
-        trafo_to_bus_connections = [
-            ( trafo_node_ids[link.start_node_id], self.bus_node_ids[link.end_node_id] )
-            for link in self.inter_feature_links
-            if link.start_node_id in trafo_node_ids
-            and link.end_node_id in self.bus_node_ids
-            ]
-
-        all_bus_trafo_connections = {}
-
-        for connection in ( bus_to_trafo_connections + trafo_to_bus_connections ):
-            trafo_id = connection[0]
-            bus_id = connection[1]
-            if not trafo_id in all_bus_trafo_connections:
-                all_bus_trafo_connections[trafo_id] = [bus_id]
-            else:
-                all_bus_trafo_connections[trafo_id].append(bus_id)
+        all_bus_trafo_connections = \
+            self._retrieve_connections( self.bus_node_ids, trafo_node_ids, self.inter_feature_links )
 
         for trafo in self.trafos:
             connected_bus_ids = all_bus_trafo_connections[trafo.id]
@@ -720,43 +566,11 @@ class ElectricalSimModelDBReader( DBAccess, abc.ABC ):
         Add switches to network.
         """
 
-        switch_ids = [ switch.id for switch in self.switches ]
+        ( switch_ids, switch_feature_graph_ids, switch_node_ids ) = \
+            self._retrieve_feature_data( self.switches, self.feature_graphs, self.nodes )
 
-        switch_feature_graph_ids = {
-            feature_graph.id: feature_graph.ntw_feature_id
-            for feature_graph in self.feature_graphs
-            if feature_graph.ntw_feature_id in switch_ids
-            }
-
-        switch_node_ids = {
-            node.id : switch_feature_graph_ids[node.feat_graph_id]
-            for node in self.nodes
-            if node.feat_graph_id in switch_feature_graph_ids
-            }
-
-        bus_to_switch_connections = [
-            ( switch_node_ids[link.end_node_id], self.bus_node_ids[link.start_node_id] )
-            for link in self.inter_feature_links
-            if link.start_node_id in self.bus_node_ids
-            and link.end_node_id in switch_node_ids
-            ]
-
-        switch_to_bus_connections = [
-            ( switch_node_ids[link.start_node_id], self.bus_node_ids[link.end_node_id] )
-            for link in self.inter_feature_links
-            if link.start_node_id in switch_node_ids
-            and link.end_node_id in self.bus_node_ids
-            ]
-
-        all_bus_switch_connections = {}
-
-        for connection in ( bus_to_switch_connections + switch_to_bus_connections ):
-            switch_id = connection[0]
-            bus_id = connection[1]
-            if not switch_id in all_bus_switch_connections:
-                all_bus_switch_connections[switch_id] = [bus_id]
-            else:
-                all_bus_switch_connections[switch_id].append(bus_id)
+        all_bus_switch_connections = \
+            self._retrieve_connections( self.bus_node_ids, switch_node_ids, self.inter_feature_links )
 
 
         for switch in self.switches:
@@ -784,46 +598,11 @@ class ElectricalSimModelDBReader( DBAccess, abc.ABC ):
         Add an external grid to the network.
         """
 
-        ext_grid_ids = [ ext_grid.id for ext_grid in self.external_grids ]
+        ( ext_grid_ids, ext_grid_feature_graph_ids, ext_grid_node_ids ) = \
+            self._retrieve_feature_data( self.external_grids, self.feature_graphs, self.nodes )
 
-        ext_grid_feature_graph_ids = {
-            feature_graph.id: feature_graph.ntw_feature_id
-            for feature_graph in self.feature_graphs
-            if feature_graph.ntw_feature_id in ext_grid_ids
-            }
-
-        ext_grid_node_ids = {
-            node.id : ext_grid_feature_graph_ids[node.feat_graph_id]
-            for node in self.nodes
-            if node.feat_graph_id in ext_grid_feature_graph_ids
-            }
-
-        bus_to_ext_grid_connections = [
-            ( ext_grid_node_ids[link.end_node_id], self.bus_node_ids[link.start_node_id] )
-            for link in self.inter_feature_links
-            if link.start_node_id in self.bus_node_ids
-            and link.end_node_id in ext_grid_node_ids
-            ]
-
-        ext_grid_to_bus_connections = [
-            ( ext_grid_node_ids[link.start_node_id], self.bus_node_ids[link.end_node_id] )
-            for link in self.inter_feature_links
-            if link.start_node_id in ext_grid_node_ids
-            and link.end_node_id in self.bus_node_ids
-            ]
-
-        all_bus_ext_grid_connections = {}
-
-        for connection in ( bus_to_ext_grid_connections + ext_grid_to_bus_connections ):
-
-            ext_grid_id = connection[0]
-            bus_id = connection[1]
-            if not ext_grid_id in all_bus_ext_grid_connections:
-                all_bus_ext_grid_connections[ext_grid_id] = bus_id
-            else:
-                raise RuntimeError(
-                    'external grid with ID {} is connected to more than 1 bus'.format( ext_grid_id )
-                    )
+        all_bus_ext_grid_connections = \
+            self._retrieve_unique_connections( self.bus_node_ids, ext_grid_node_ids, self.inter_feature_links )
 
         for ext_grid in self.external_grids:
 

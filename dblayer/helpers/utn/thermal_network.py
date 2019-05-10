@@ -9,9 +9,9 @@ from dblayer.func.func_citydb_view_nrg import *
 from collections import namedtuple
 
 
-class ThermalNodeData(
+class ThermalNetworkNodeData(
     namedtuple(
-        'ThermalNodeData_Tuple',
+        'ThermalNetworkNodeData_Tuple',
         ['feature_id', 'feature_graph_id', 'node_id', 'posx', 'posy']
         )
     ):
@@ -20,13 +20,13 @@ class ThermalNodeData(
 
     Attributes:
 
-    feature_id (int): ID of the network feature associated to the thermal node
+    feature_id (int): ID of the network feature associated to the thermal network node
 
-    feature_graph_id (int):  ID of the network feature graph associated to the thermal node
+    feature_graph_id (int):  ID of the network feature graph associated to the thermal network node
 
     node_id: ID of the single node contained in the network feature graph
 
-    posx, posy (float): 2D coordinates of the thermal node
+    posx, posy (float): 2D coordinates of the thermal network node
     """
 
     __slots__ = ()
@@ -106,11 +106,11 @@ def write_dhw_sink_to_db(
     network_id,
     network_graph_id ):
     """
-    Inserts an electrical load into the 3DCityDB.
+    Inserts an thermal load into the 3DCityDB.
 
-    This function adds an object of type 'ElectricalAppliance' to the database, which stores the (static) power consumption. This is done with the help of function 'add_citydb_object', which in turn uses function 'insert_electrical_appliances'. The reactive power 'q_kvar' is associated as generic parameter to this object.
+    This function adds an object of type 'DHWFactility' to the database, which stores the (static) power consumption. This is done with the help of function 'add_citydb_object', which in turn uses function 'insert_dhw_facilities'.
 
-    Furthermore, a terminal element is added to the network using function 'write_terminal_element_to_db', which is linked to the electrical appliance via its city object ID.
+    Furthermore, a terminal element is added to the network using function 'write_terminal_element_to_db', which is linked to the DHW appliance via its city object ID.
 
     :param db_access: instance of class DBAccess, which is the basic interface of package dblayer to interface a 3DCityDB (dblayer.DBAccess)
     :param name: name of the load (string)
@@ -121,7 +121,7 @@ def write_dhw_sink_to_db(
     :param network_id: ID of the network, to which the network feature representing this bus will be added in the 3DCityDB (int)
     :param network_graph_id: ID of the network graph, to which the feature graph of this bus will be added in the 3DCityDB (int)
 
-    :return: instance of class ThermalNodeData (dblayer.helpers.utn.thermal_network.ThermalNodeData)
+    :return: instance of class ThermalNetworkNodeData (dblayer.helpers.utn.thermal_network.ThermalNetworkNodeData)
     """
 
     appliance_id = db_access.add_citydb_object(
@@ -167,7 +167,7 @@ def write_junction_to_db(
     :param network_id: ID of the network, to which the network feature representing this bus will be added in the 3DCityDB (int)
     :param network_graph_id: ID of the network graph, to which the feature graph of this bus will be added in the 3DCityDB (int)
 
-    :return: instance of class ThermalNodeData (dblayer.helpers.utn.thermal_network.ThermalNodeData)
+    :return: instance of class ThermalNetworkNodeData (dblayer.helpers.utn.thermal_network.ThermalNetworkNodeData)
     """
 
     (feature_id, feature_graph_id, node_id) = insert_ntw_feature_2dpoint(
@@ -181,7 +181,7 @@ def write_junction_to_db(
         class_name = 'junction'
     )
 
-    return ThermalNodeData( feature_id, feature_graph_id, node_id, coord.x, coord.y )
+    return ThermalNetworkNodeData( feature_id, feature_graph_id, node_id, coord.x, coord.y )
 
 
 def write_terminal_element_to_db(
@@ -210,7 +210,7 @@ def write_terminal_element_to_db(
     :param network_graph_id: ID of the network graph, to which the feature graph of this terminal element will be added in the 3DCityDB (int)
     :param cityobject_id: ID of associated city object (int, optional)
 
-    :return: instance of class ThermalNodeData (dblayer.helpers.utn.thermal_network.ThermalNodeData)
+    :return: instance of class ThermalNetworkNodeData (dblayer.helpers.utn.thermal_network.ThermalNetworkNodeData)
     """
 
     (feature_id, feature_graph_id, node_id) = insert_ntw_feature_2dpoint(
@@ -225,7 +225,7 @@ def write_terminal_element_to_db(
         cityobject_id = cityobject_id
     )
 
-    return ThermalNodeData( feature_id, feature_graph_id, node_id, coord.x, coord.y )
+    return ThermalNetworkNodeData( feature_id, feature_graph_id, node_id, coord.x, coord.y )
 
 
 def write_round_pipe_to_db(
@@ -243,7 +243,7 @@ def write_round_pipe_to_db(
     int_diameter_unit = None
     ):
     """
-    Insert a n electrical line into the 3DCityDB.
+    Insert a round pipe into the 3DCityDB.
 
     This function uses function 'insert_and_link_ntw_feature_2dlinestring', whichh adds a new newtwork feature represented by a 2D line segment (made up of 2D points). In addition to the new network feature, a feature graph containing a 2D line segment is created and the start and end points of this line segment are associated to exterior nodes and linked via an interior feature link.
 
@@ -251,8 +251,8 @@ def write_round_pipe_to_db(
 
     :param db_access: instance of class DBAccess, which is the basic interface of package dblayer to interface a 3DCityDB (dblayer.DBAccess)
     :param name: name of line (string)
-    :param from_node: information about the thermal node this line is connected to (dblayer.helpers.utn.electrical_network.ThermalNodeData)
-    :param to_node: information about the thermal node this line is connected to (dblayer.helpers.utn.electrical_network.ThermalNodeData)
+    :param from_node: information about the thermal node this line is connected to (dblayer.helpers.utn.thermal_network.ThermalNetworkNodeData)
+    :param to_node: information about the thermal node this line is connected to (dblayer.helpers.utn.thermal_network.ThermalNetworkNodeData)
     :param spatial_reference_id: spatial reference ID for the network (int)
     :param network_id: ID of the network, to which the network feature representing this pipe will be added in the 3DCityDB (int)
     :param network_graph_id: ID of the network graph, to which the feature graph of this pipe will be added in the 3DCityDB (int)
