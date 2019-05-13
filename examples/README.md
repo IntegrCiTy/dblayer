@@ -23,7 +23,7 @@ Notebook **PowerGridModelInspect.ipynb** shows how a power grid model can be rea
 Notebook **PowerGridModelSim.ipynb** shows how a power grid model stored in the extended 3DCityDB can be extracted and used as a simulation model for [pandapower](https://pandapower.readthedocs.io/en/v2.0.1/index.html).
 
 
-## Example: Inspecting a power grid model from the extended 3DCityDB
+## Thermal network models
 
 Notebook **ThermalNetworkModelWriteDB.ipynb** shows how a thermal network model can be written to the extended 3DCityDB.
 Notebook **ThermalNetworkModelInspect.ipynb** shows how a thermal network model can be read from the extended 3DCityDB and how the topological and topographical data can be inspected and visualized.
@@ -31,7 +31,7 @@ Notebook **ThermalNetworkModelSim.ipynb** shows how a thermal network model stor
 
 
 
-## Example: Simulating a power grid model stored in the extended 3DCityDB
+## Gas network models
 
 Notebook **GasNetworkModelWriteDB.ipynb** shows how a gas network model can be written to the extended 3DCityDB.
 Notebook **GasNetworkModelInspect.ipynb** shows how a gas network model can be read from the extended 3DCityDB and how the topological and topographical data can be inspected and visualized.
