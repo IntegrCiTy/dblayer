@@ -7,12 +7,16 @@ from dblayer import *
 from dblayer.func.func_citydb_view import *
 from dblayer.func.func_citydb_view_nrg import *
 from dblayer.func.func_postgis_geom import *
+
 from dblayer.sim.pandapower import *
 from dblayer.sim.pandathermal import *
+from dblayer.sim.pandangas import *
 
 import dblayer.helpers.utn.electrical_network as el_net
 import dblayer.helpers.utn.thermal_network as th_net
+import dblayer.helpers.utn.gas_network as gas_net
 
+import pandangas.simulation as gas_sim
 
 import ictdeploy
 
@@ -111,13 +115,18 @@ def fix_create_sim():
 
 
 @pytest.fixture()
-def fix_el_network_id():
+def fix_electrical_network_id():
     return 1000
 
 
 @pytest.fixture()
-def fix_th_network_id():
+def fix_thermal_network_id():
     return 2000
+
+
+@pytest.fixture()
+def fix_gas_network_id():
+    return 3000
 
 
 def test_cleanup_citydb_schema( fix_access ):
@@ -334,7 +343,7 @@ def test_geom_func( fix_connect, fix_access ):
         assert( str( e ) == 'first and last point do not coincide' )
 
 
-def test_fill_citydb_utn_electrical( fix_access, fix_el_network_id ):
+def test_fill_citydb_utn_electrical( fix_access, fix_electrical_network_id ):
 
     # Define spatial reference ID.
     srid = 25833
@@ -342,9 +351,9 @@ def test_fill_citydb_utn_electrical( fix_access, fix_el_network_id ):
     # Create network and network graph.
     ( ntw_id, ntw_graph_id ) = el_net.write_network_to_db(
         fix_access,
-        name = 'test_el_network',
+        name = 'test_electrical_network',
         type = 'singlePhaseAlternatingCurrent',
-        id = fix_el_network_id
+        id = fix_electrical_network_id
         )
 
     # Add electrical busses.
@@ -371,14 +380,14 @@ def test_fill_citydb_utn_electrical( fix_access, fix_el_network_id ):
     fix_access.commit_citydb_session()
 
 
-def test_sim_utn_electrical_pandapower( fix_connect, fix_el_network_id ):
+def test_sim_utn_electrical_pandapower( fix_connect, fix_electrical_network_id ):
 
     # Instantiate reader.
     pp_reader = PandaPowerModelDBReader( fix_connect )
 
     with pytest.warns( RuntimeWarning ) as record:
         # Create simulation model from database.
-        net = pp_reader.get_net( network_id = fix_el_network_id )
+        net = pp_reader.get_net( network_id = fix_electrical_network_id )
 
     assert( len( record ) == 1 )
 
@@ -406,7 +415,7 @@ def test_sim_utn_electrical_pandapower( fix_connect, fix_el_network_id ):
     assert( net.res_line.iloc[0].loading_percent == pytest.approx( 1.443825, 1e-4 ) )
 
 
-def test_fill_citydb_utn_thermal( fix_access, fix_th_network_id ):
+def test_fill_citydb_utn_thermal( fix_access, fix_thermal_network_id ):
 
     # Define spatial reference ID.
     srid = 25833
@@ -414,8 +423,8 @@ def test_fill_citydb_utn_thermal( fix_access, fix_th_network_id ):
     # Create network and network graph.
     ( ntw_id, ntw_graph_id ) = th_net.write_network_to_db(
         fix_access,
-        name = 'test_th_network',
-        id = fix_th_network_id
+        name = 'test_thermal_network',
+        id = fix_thermal_network_id
         )
 
     # Dict for most relevant data of thermal nodes.
@@ -465,13 +474,13 @@ def test_fill_citydb_utn_thermal( fix_access, fix_th_network_id ):
     fix_access.commit_citydb_session()
 
 
-def test_sim_utn_thermal_pandathermal( fix_connect, fix_th_network_id ):
+def test_sim_utn_thermal_pandathermal( fix_connect, fix_thermal_network_id ):
 
     # Instantiate reader.
     pth_reader = PandaThermalModelDBReader( fix_connect )
 
     # Create simulation model from database.
-    net = pth_reader.get_net( network_id = fix_th_network_id )
+    net = pth_reader.get_net( network_id = fix_thermal_network_id )
 
     # Check number of elements in the simulation model.
     assert( len( net.nodes ) == 17 )
@@ -498,3 +507,85 @@ def test_sim_utn_thermal_pandathermal( fix_connect, fix_th_network_id ):
     assert( pipes_max_m_dot[('N5','N6')] == pytest.approx( 0.05, 1e-4 ) )
     assert( pipes_max_m_dot[('N5','SNK8')] == pytest.approx( 0.14, 1e-4 ) )
     assert( pipes_max_m_dot[('N6','SNK9')] == pytest.approx( 0.05, 1e-4 ) )
+
+
+def test_fill_citydb_utn_gas( fix_access, fix_gas_network_id ):
+
+    # Define spatial reference ID.
+    srid = 25833
+
+    # Create network and network graph.
+    ( ntw_id, ntw_graph_id ) = gas_net.write_network_to_db(
+        fix_access,
+        name = 'test_gas_network',
+        id = fix_gas_network_id
+        )
+
+    # Add gas network nodes.
+    node_f = gas_net.write_network_node_to_db( fix_access, 'node-NF', 'MP', Point2D( 0., 0. ), srid, ntw_id, ntw_graph_id )
+    node_0 = gas_net.write_network_node_to_db( fix_access, 'node-N0', 'MP', Point2D( 100., 0. ), srid, ntw_id, ntw_graph_id )
+    node_1 = gas_net.write_network_node_to_db( fix_access, 'node-N1', 'BP', Point2D( 105., 0. ), srid, ntw_id, ntw_graph_id )
+    node_2 = gas_net.write_network_node_to_db( fix_access, 'node-N2', 'BP', Point2D( 265., 366.606 ), srid, ntw_id, ntw_graph_id )
+    node_3 = gas_net.write_network_node_to_db( fix_access, 'node-N3', 'BP', Point2D( 605., 0. ), srid, ntw_id, ntw_graph_id )
+
+    # Add gas pipes.
+    gas_net.write_round_pipe_to_db( fix_access, 'pipe-NF-N0', node_f, node_0, srid, ntw_id, ntw_graph_id,int_diameter = 0.05, int_diameter_unit = 'm' )
+    gas_net.write_round_pipe_to_db( fix_access, 'pipe-N1-N2', node_1, node_2, srid, ntw_id, ntw_graph_id,int_diameter = 0.05, int_diameter_unit = 'm' )
+    gas_net.write_round_pipe_to_db( fix_access, 'pipe-N1-N3', node_1, node_3, srid, ntw_id, ntw_graph_id,int_diameter = 0.05, int_diameter_unit = 'm' )
+    gas_net.write_round_pipe_to_db( fix_access, 'pipe-N2-N3', node_2, node_3, srid, ntw_id, ntw_graph_id,int_diameter = 0.05, int_diameter_unit = 'm' )
+
+    # Add sinks.
+    gas_net.write_gas_sink_to_db( fix_access, 'sink-N2', node_2, 10., 'kW', srid, ntw_id, ntw_graph_id )
+    gas_net.write_gas_sink_to_db( fix_access, 'sink-N3', node_3, 15., 'kW', srid, ntw_id, ntw_graph_id )
+
+    # Add gas network station.
+    gas_net.write_station_to_db( fix_access, 'station-N0-N1', node_0, node_1, 50., 0.025E5, srid, ntw_id, ntw_graph_id )
+
+    # Add external gas feeder.
+    gas_net.write_feeder_to_db( fix_access, 'feeder-F', node_f, 50., 0.9E5, srid, ntw_id, ntw_graph_id )
+
+    fix_access.commit_citydb_session()
+
+
+def test_sim_utn_gas_pandangas( fix_connect, fix_gas_network_id ):
+
+    # Instantiate reader.
+    pg_reader = PandaNGasModelDBReader( fix_connect )
+
+    # Create simulation model from database.
+    net = pg_reader.get_net( network_id = fix_gas_network_id )
+
+    # Check number of elements in the simulation model.
+    assert( len( net.station ) == 1 )
+    assert( len( net.pipe ) == 4 )
+    assert( len( net.feeder ) == 1 )
+    assert( len( net.load ) == 2 )
+    assert( len( net.bus ) == 5 )
+
+    scaled_loads = gas_sim._scaled_loads_as_dict( net )
+    assert( scaled_loads['node-N2'] == 0.000262 )
+    assert( scaled_loads['node-N3'] == 0.000394 )
+
+    p_min_loads = gas_sim._p_min_loads_as_dict( net )
+    assert( p_min_loads['node-N2'] == 2200.0 )
+    assert( p_min_loads['node-N3'] == 2200.0 )
+
+    p_nom_feed = gas_sim._p_nom_feed_as_dict( net )
+    assert( p_nom_feed['node-NF'] == 90000.0 )
+    assert( p_nom_feed['node-N1'] == 2500.0 )
+
+    with pytest.warns( PendingDeprecationWarning ) as record:
+        p_nodes, m_dot_pipes, m_dot_nodes, gas = gas_sim._run_sim( net )
+
+    assert( len( record ) == 1 )
+
+    assert( p_nodes['node-N1'] == 2500.0 )
+    assert( p_nodes['node-N2'] == 1962.7 )
+    assert( p_nodes['node-N3'] == 1827.8 )
+    assert( m_dot_pipes['pipe-N1-N2'] == 0.000328 )
+    assert( m_dot_pipes['pipe-N1-N3'] == 0.000328 )
+    assert( m_dot_pipes['pipe-N2-N3'] == 6.6e-05 )
+    assert( m_dot_nodes['node-N1'] == -0.000656 )
+    assert( m_dot_nodes['node-N2'] == 0.000262 )
+    assert( m_dot_nodes['node-N3'] == 0.000394 )
+    #assert( pipes_max_m_dot[('N6','SNK9')] == pytest.approx( 0.05, 1e-4 ) )

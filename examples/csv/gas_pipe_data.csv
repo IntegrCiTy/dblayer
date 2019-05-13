@@ -1,0 +1,5 @@
+name,diameter_m,from_node,to_node
+pipe-NF-N0,0.05,node-NF,node-N0
+pipe-N1-N2,0.05,node-N1,node-N2
+pipe-N1-N3,0.05,node-N1,node-N3
+pipe-N2-N3,0.05,node-N2,node-N3

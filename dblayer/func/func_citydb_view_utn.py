@@ -805,3 +805,48 @@ def insert_ntw_feat_distrib_elem_pipe_other_shape(
         ext_diameter, # numeric, default: NULL::numeric
         ext_diameter_unit # character varying, default: NULL::character varying
         )
+
+
+def insert_commodity_gaseous_medium(
+    id = None,
+    gmlid = None,
+    gmlid_codespace = None,
+    name = None,
+    name_codespace = None,
+    description = None,
+    owner = None,
+    type = None,
+    is_explosive = None,
+    is_lighter_than_air = None,
+    elec_conductivity_range_from = None,
+    elec_conductivity_range_to = None,
+    elec_conductivity_range_unit = None,
+    concentration = None,
+    concentration_unit = None,
+    pressure_range_from = None,
+    pressure_range_to = None,
+    pressure_range_unit = None
+    ):
+    """
+    Define function call to insert gaseous commodity.
+    """
+    return func.citydb_view.utn9_insert_commodity_gaseous_medium(
+        id, # integer, default: NULL::integer
+        gmlid, # character varying, default: NULL::character varying
+        gmlid_codespace, # character varying, default: NULL::character varying
+        name, # character varying, default: NULL::character varying
+        name_codespace, # character varying, default: NULL::character varying
+        description, # text, default: NULL::text
+        owner, # character varying, default: NULL::character varying
+        type, # character varying, default: NULL::character varying
+        is_explosive, # numeric, default: NULL::numeric
+        is_lighter_than_air, # numeric, default: NULL::numeric
+        elec_conductivity_range_from, # numeric, default: NULL::numeric
+        elec_conductivity_range_to, # numeric, default: NULL::numeric
+        elec_conductivity_range_unit, # character varying, default: NULL::character varying
+        concentration, # numeric, default: NULL::numeric
+        concentration_unit, # character varying, default: NULL::character varying
+        pressure_range_from, # numeric, default: NULL::numeric
+        pressure_range_to, # numeric, default: NULL::numeric
+        pressure_range_unit # character varying, default: NULL::character varying
+        )
