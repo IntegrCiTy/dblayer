@@ -21,7 +21,8 @@ Examples for using package DBLayer can be found in subdirectory `examples`.
 
 1. The basic functionality of the package (including access to PostgreSQL databases) can be installed from the command line:
 ```
-     > python setup.py install
+   > pip install -r requirements.txt
+   > python setup.py install
 ```
 2. Install the [IntegrCiTy co-simulation deployment API (ictdeploy package)](https://github.com/IntegrCiTy/ictdeploy).
 3. In addition, a working **PostgreSQL** implementation of the [3DCityDB](https://www.3dcitydb.org) has to be installed, including its [extensions](https://github.com/gioagu/3dcitydb_ade), the **Energy ADE**, the **Utility Network ADE**, the **Scenario ADE** and the **Simulation Package**. Such a database setup is referred to as **extended 3DCityDB** below.
