@@ -131,7 +131,7 @@ def fix_gas_network_id():
 
 @pytest.fixture()
 def fix_srid():
-    return 2056
+    return 4326
 
 def test_cleanup_citydb_schema( fix_access ):
     fix_access.cleanup_citydb_schema()
