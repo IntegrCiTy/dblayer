@@ -38,7 +38,6 @@ def insert_link_interfeature(
     interfeature_link_type = None,
     start_node_id = None,
     end_node_id = None,
-    feat_graph_id = None,
     ntw_graph_id = None,
     line_geom = None
     ):
@@ -57,7 +56,6 @@ def insert_link_interfeature(
         interfeature_link_type, # character varying, default: NULL::character varying
         start_node_id, # integer, default: NULL::integer
         end_node_id, # integer, default: NULL::integer
-        feat_graph_id, # integer, default: NULL::integer
         ntw_graph_id, # integer, default: NULL::integer
         line_geom # geometry, default: NULL::geometry
         )
@@ -362,7 +360,7 @@ def insert_ntw_feat_simple_funct_elem(
     status = None,
     location_quality = None,
     elevation_quality = None,
-    cityobject_id = None,
+    conn_cityobject_id = None,
     prot_element_id = None,
     geom = None
     ):
@@ -394,7 +392,7 @@ def insert_ntw_feat_simple_funct_elem(
         status, # character varying, default: NULL::character varying
         location_quality, # character varying, default: NULL::character varying
         elevation_quality, # character varying, default: NULL::character varying
-        cityobject_id, # integer, default: NULL::integer
+        conn_cityobject_id, # integer, default: NULL::integer
         prot_element_id, # integer, default: NULL::integer
         geom, # geometry, default: NULL::geometry
         )

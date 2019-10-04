@@ -129,6 +129,10 @@ def fix_gas_network_id():
     return 3000
 
 
+@pytest.fixture()
+def fix_srid():
+    return 4326
+
 def test_cleanup_citydb_schema( fix_access ):
     fix_access.cleanup_citydb_schema()
 
@@ -343,10 +347,10 @@ def test_geom_func( fix_connect, fix_access ):
         assert( str( e ) == 'first and last point do not coincide' )
 
 
-def test_fill_citydb_utn_electrical( fix_access, fix_electrical_network_id ):
+def test_fill_citydb_utn_electrical( fix_access, fix_electrical_network_id, fix_srid ):
 
     # Define spatial reference ID.
-    srid = 25833
+    srid = fix_srid
 
     # Create network and network graph.
     ( ntw_id, ntw_graph_id ) = el_net.write_network_to_db(
@@ -415,10 +419,10 @@ def test_sim_utn_electrical_pandapower( fix_connect, fix_electrical_network_id )
     assert( net.res_line.iloc[0].loading_percent == pytest.approx( 1.443825, 1e-4 ) )
 
 
-def test_fill_citydb_utn_thermal( fix_access, fix_thermal_network_id ):
+def test_fill_citydb_utn_thermal( fix_access, fix_thermal_network_id, fix_srid ):
 
     # Define spatial reference ID.
-    srid = 25833
+    srid = fix_srid
 
     # Create network and network graph.
     ( ntw_id, ntw_graph_id ) = th_net.write_network_to_db(
@@ -509,10 +513,10 @@ def test_sim_utn_thermal_pandathermal( fix_connect, fix_thermal_network_id ):
     assert( pipes_max_m_dot[('N6','SNK9')] == pytest.approx( 0.05, 1e-4 ) )
 
 
-def test_fill_citydb_utn_gas( fix_access, fix_gas_network_id ):
+def test_fill_citydb_utn_gas( fix_access, fix_gas_network_id, fix_srid ):
 
     # Define spatial reference ID.
-    srid = 25833
+    srid = fix_srid
 
     # Create network and network graph.
     ( ntw_id, ntw_graph_id ) = gas_net.write_network_to_db(
@@ -574,10 +578,10 @@ def test_sim_utn_gas_pandangas( fix_connect, fix_gas_network_id ):
     assert( p_nom_feed['node-NF'] == 90000.0 )
     assert( p_nom_feed['node-N1'] == 2500.0 )
 
-    with pytest.warns( PendingDeprecationWarning ) as record:
-        p_nodes, m_dot_pipes, m_dot_nodes, gas = gas_sim._run_sim( net )
+    #with pytest.warns( PendingDeprecationWarning ) as record:
+    p_nodes, m_dot_pipes, m_dot_nodes, gas = gas_sim._run_sim( net )
 
-    assert( len( record ) == 1 )
+    #assert( len( record ) == 1 )
 
     assert( p_nodes['node-N1'] == 2500.0 )
     assert( p_nodes['node-N2'] == 1962.7 )

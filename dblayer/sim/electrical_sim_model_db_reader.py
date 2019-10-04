@@ -294,7 +294,7 @@ class ElectricalSimModelDBReader( SimModelDBReaderBase ):
         self.electrical_appliances = self.join_citydb_objects(
             [ 'ElectricalAppliances', 'TerminalElement', 'NetworkToFeature' ],
             conditions = [
-                self.ElectricalAppliances.id == self.TerminalElement.cityobject_id,
+                self.ElectricalAppliances.id == self.TerminalElement.conn_cityobject_id,
                 self.TerminalElement.id == self.NetworkToFeature.network_feature_id,
                 self.NetworkToFeature.network_id == network_id
                 ],
@@ -395,7 +395,8 @@ class ElectricalSimModelDBReader( SimModelDBReaderBase ):
             [ 'GenericAttribute', 'TerminalElement', 'NetworkToFeature' ],
             conditions = [
                 self.GenericAttribute.attrname == 'q_kvar',
-                self.GenericAttribute.cityobject_id == self.TerminalElement.cityobject_id,self.TerminalElement.id == self.NetworkToFeature.network_feature_id,
+                self.GenericAttribute.cityobject_id == self.TerminalElement.conn_cityobject_id,
+                self.TerminalElement.id == self.NetworkToFeature.network_feature_id,
                 self.NetworkToFeature.network_id == network_id
                 ],
             result_index = 0
@@ -507,7 +508,7 @@ class ElectricalSimModelDBReader( SimModelDBReaderBase ):
 
         for load in self.loads:
             connected_bus_id = all_bus_load_connections[load.id]
-            connected_electrical_appliance = elec_appliance_ids[load.cityobject_id]
+            connected_electrical_appliance = elec_appliance_ids[load.conn_cityobject_id]
 
             self.add_load(
                 net = net,

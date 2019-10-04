@@ -231,7 +231,7 @@ class ThermalSimModelDBReader( SimModelDBReaderBase ):
         self.dhw_facilities = self.join_citydb_objects(
             [ 'DHWFacilities', 'TerminalElement', 'NetworkToFeature' ],
             conditions = [
-                self.DHWFacilities.id == self.TerminalElement.cityobject_id,
+                self.DHWFacilities.id == self.TerminalElement.conn_cityobject_id,
                 self.TerminalElement.id == self.NetworkToFeature.network_feature_id,
                 self.NetworkToFeature.network_id == network_id
                 ],
@@ -321,7 +321,7 @@ class ThermalSimModelDBReader( SimModelDBReaderBase ):
 
         for sink in self.sinks:
 
-            dhw_facility = dhw_facility_ids[sink.cityobject_id]
+            dhw_facility = dhw_facility_ids[sink.conn_cityobject_id]
 
             self.add_sink(
                 net = net,
