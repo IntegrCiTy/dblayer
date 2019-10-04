@@ -4,6 +4,7 @@ import os
 import sqlalchemy.orm.exc
 
 from dblayer import *
+from dblayer.func.func_citydb_pkg import *
 from dblayer.func.func_citydb_view import *
 from dblayer.func.func_citydb_view_nrg import *
 from dblayer.func.func_postgis_geom import *
@@ -347,6 +348,20 @@ def test_geom_func( fix_connect, fix_access ):
         assert( str( e ) == 'first and last point do not coincide' )
 
 
+def test_insert_surface_geometry( fix_access, fix_srid ):
+    
+    geom_2d_points = [ Point2D( 0., 0. ), Point2D( 0., 1. ), Point2D( 1., 1. ), Point2D( 0., 0. ) ]
+
+    geom = fix_access.execute_function( 
+        geom_from_2dpolygon( geom_2d_points, fix_srid )
+        )
+
+    geom_id = fix_access.add_citydb_object(
+        insert_surface_geometry,
+        geometry = geom
+        )
+
+        
 def test_fill_citydb_utn_electrical( fix_access, fix_electrical_network_id, fix_srid ):
 
     # Define spatial reference ID.
