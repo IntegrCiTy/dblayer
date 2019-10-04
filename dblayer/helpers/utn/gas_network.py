@@ -128,7 +128,8 @@ def write_gas_sink_to_db(
     gas_consumption_unit,
     spatial_reference_id,
     network_id,
-    network_graph_id
+    network_graph_id,
+    cityobject_id = None
     ):
     """
     Inserts a gas sink into the 3DCityDB.
@@ -145,6 +146,7 @@ def write_gas_sink_to_db(
     :param spatial_reference_id: spatial reference ID for the network (int)
     :param network_id: ID of the network, to which the network feature representing this bus will be added in the 3DCityDB (int)
     :param network_graph_id: ID of the network graph, to which the feature graph of this bus will be added in the 3DCityDB (int)
+    :param cityobject_id: ID of associated city object (int, optional)
 
     :return: instance of class GasNetworkNodeData (dblayer.helpers.utn.thermal_network.GasNetworkNodeData)
     """
@@ -156,7 +158,8 @@ def write_gas_sink_to_db(
         'gas-network-sink',
         spatial_reference_id,
         network_id,
-        network_graph_id
+        network_graph_id,
+        cityobject_id = cityobject_id
         )
 
     add_generic_attributes(

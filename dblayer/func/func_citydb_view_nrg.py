@@ -432,7 +432,7 @@ def insert_dhw_facilities(
     building_unit_id = None
     ):
     '''
-    Define function call to onsert DHW facility.
+    Define function call to insert DHW facility.
     '''
     return func.citydb_view.nrg8_insert_dhw_facilities(
         id, # integer, default: NULL::integer
@@ -463,4 +463,129 @@ def insert_dhw_facilities(
         oper_sched_id, # integer, default: NULL::integer
         usage_zone_id, # integer, default: NULL::integer
         building_unit_id, # integer, default: NULL::integer
+        )
+
+
+def insert_final_energy(
+    id = None,
+    gmlid = None,
+    gmlid_codespace = None,
+    name = None,
+    name_codespace = None,
+    description = None,
+    nrg_car_type = None,
+    nrg_car_prim_nrg_factor = None,
+    nrg_car_prim_nrg_factor_unit = None,
+    nrg_car_nrg_density = None,
+    nrg_car_nrg_density_unit = None,
+    nrg_car_co2_emission = None,
+    nrg_car_co2_emission_unit = None,
+    time_series_id = None
+    ):
+    '''
+    Define function call to insert final energy use.
+    '''
+    if nrg_car_type not in [ 'ChilledAir', 'ChilledWater', 'Coal', 'Electricity', 'FuelOil', 'HotAir', 'HotWater', 'NaturalGas', 'Propane', 'Steam', 'WoodChips', 'WoodPellets', 'SolarEnergy' ]:
+        raise RuntimeError( 'invalid energy carrier type' )
+
+    return func.citydb_view.nrg8_insert_final_energy(
+        id, # integer, default: NULL::integer
+        gmlid, # character varying, default: NULL::character varying
+        gmlid_codespace, # character varying, default: NULL::character varying
+        name, # character varying, default: NULL::character varying
+        name_codespace, # character varying, default: NULL::character varying
+        description, # text, default: NULL::text
+        nrg_car_type, # character varying, default: NULL::character varying
+        nrg_car_prim_nrg_factor, # numeric, default: NULL::numeric
+        nrg_car_prim_nrg_factor_unit, # character varying, default: NULL::character varying
+        nrg_car_nrg_density, # numeric, default: NULL::numeric
+        nrg_car_nrg_density_unit, # character varying, default: NULL::character varying
+        nrg_car_co2_emission, # numeric, default: NULL::numeric
+        nrg_car_co2_emission_unit, # character varying, default: NULL::character varying
+        time_series_id, # integer, default: NULL::integer
+        )
+
+
+def insert_conv_system(
+    id = None,
+    gmlid = None,
+    gmlid_codespace = None,
+    name = None,
+    name_codespace = None,
+    description = None,
+    envelope = None,
+    creation_date = None,
+    termination_date = None,
+    relative_to_terrain = None,
+    relative_to_water = None,
+    last_modification_date = None,
+    updating_person = None,
+    reason_for_update = None,
+    lineage = None,
+    model = None,
+    nbr = None,
+    year_of_manufacture = None,
+    inst_nom_pwr = None,
+    inst_nom_pwr_unit = None,
+    nom_effcy = None,
+    effcy_indicator = None,
+    start_of_life = None,
+    life_expect_value = None,
+    life_expect_value_unit = None,
+    main_maint_interval = None,
+    main_maint_interval_unit = None,
+    inst_in_ctyobj_id = None,
+    cityobject_id = None
+    ):
+    '''
+    Define function call to insert conversion system.
+    '''
+    return func.citydb_view.nrg8_insert_conv_system(
+        id, # integer, default: NULL::integer
+        gmlid, # character varying, default: NULL::character varying
+        gmlid_codespace, # character varying, default: NULL::character varying
+        name, # character varying, default: NULL::character varying
+        name_codespace, # character varying, default: NULL::character varying
+        description, # character varying, default: NULL::character varying
+        envelope, # geometry, default: NULL::geometry
+        creation_date, # timestamp with time zone, default: NULL::timestamp with time zone
+        termination_date, # timestamp with time zone, default: NULL::timestamp with time zone
+        relative_to_terrain, # character varying, default: NULL::character varying
+        relative_to_water, # character varying, default: NULL::character varying
+        last_modification_date, # timestamp with time zone, default: NULL::timestamp with time zone
+        updating_person, # character varying, default: NULL::character varying
+        reason_for_update, # character varying, default: NULL::character varying
+        lineage, # character varying, default: NULL::character varying
+        model, # character varying, default: NULL::character varying
+        nbr, # integer, default: NULL::integer
+        year_of_manufacture, # integer, default: NULL::integer
+        inst_nom_pwr, # numeric, default: NULL::numeric
+        inst_nom_pwr_unit, # character varying, default: NULL::character varying
+        nom_effcy, # numeric, default: NULL::numeric
+        effcy_indicator, # character varying, default: NULL::character varying
+        start_of_life, # date, default: NULL::date
+        life_expect_value, # numeric, default: NULL::numeric
+        life_expect_value_unit, # character varying, default: NULL::character varying
+        main_maint_interval, # numeric, default: NULL::numeric
+        main_maint_interval_unit, # character varying, default: NULL::character varying
+        inst_in_ctyobj_id, # integer, default: NULL::integer
+        cityobject_id, # integer, default: NULL::integer
+        )
+
+
+def insert_conv_sys_to_final_nrg(
+    conv_system_id,
+    final_nrg_id,
+    role
+    ):
+    '''
+    Define function call to insert association of energy conversion system to final energy use.
+    '''
+    if not role in [ 'production', 'consumption' ]:
+        raise RuntimeError( 'undefined role' )
+
+    return func.citydb_pkg.nrg8_insert_conv_sys_to_final_nrg(
+        conv_system_id, # integer
+        final_nrg_id, # integer
+        role # character varying
         )

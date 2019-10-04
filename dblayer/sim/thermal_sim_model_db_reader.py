@@ -358,12 +358,12 @@ class ThermalSimModelDBReader( SimModelDBReaderBase ):
         """
 
         ( pipe_ids, pipe_feature_graph_ids, pipe_node_ids ) = \
-            self._retrieve_feature_data( self.pipes, self.feature_graphs, self.nodes )
+            self._retrieve_feature_data( self.pipes, self.feature_graphs, self.nodes
+            )
 
-        all_node_pipe_connections = \
-            self._retrieve_connections_with_link_control(
-                self.feature_graph_ids, pipe_node_ids, self.inter_feature_links
-                )
+        all_node_pipe_connections =  self._retrieve_connections_with_link_control(
+            self.feature_graph_ids, pipe_node_ids, self.inter_feature_links
+            )
 
         for pipe in self.pipes:
             connected_node_ids = all_node_pipe_connections[pipe.id]

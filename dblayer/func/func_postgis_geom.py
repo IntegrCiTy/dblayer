@@ -89,7 +89,7 @@ def geom_from_2dpolygon(
 
     first_point = points[0]
     last_point = points[-1]
-    if ( first_point.x is not last_point.x ) or ( first_point.y is not last_point.y ):
+    if ( first_point.x != last_point.x ) or ( first_point.y != last_point.y ):
         raise ValueError( 'first and last point do not coincide' )
 
     # Construct well-known text representation of 2D polygon.
