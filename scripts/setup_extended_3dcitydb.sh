@@ -53,7 +53,7 @@ done
 # Retrieve and install 3D City Database Utilities Package (revision 5d365ba).
 git clone https://github.com/gioagu/3dcitydb_utilities.git
 cd 3dcitydb_utilities
-git checkout 5d365ba
+git checkout 5d365ba --quiet
 "$PGBIN/psql" -h localhost -p $PORT -d $DBNAME -U $DBUSER -f "INSTALL_citydb_utilities.sql"
 cd ..
 
@@ -61,7 +61,7 @@ cd ..
 # Retrieve and install 3D City Database Metadata Module (revision 221e886).
 git clone https://github.com/gioagu/3dcitydb_metadata_module.git
 cd 3dcitydb_metadata_module
-git checkout 221e886
+git checkout 221e886 --quiet
 "$PGBIN/psql" -h localhost -p $PORT -d $DBNAME -U $DBUSER -f "INSTALL_Metadata_module.sql"
 cd ..
 
@@ -69,7 +69,7 @@ cd ..
 # Retrieve and install the CityGML Energy ADE (revision 4074ae7).
 git clone https://github.com/gioagu/3dcitydb_energy_ade.git
 cd 3dcitydb_energy_ade
-git checkout 4074ae7
+git checkout 4074ae7 --quiet
 "$PGBIN/psql" -h localhost -p $PORT -d $DBNAME -U $DBUSER -f "INSTALL_Energy_ADE.sql"
 cd ..
 
@@ -77,7 +77,7 @@ cd ..
 # Retrieve and install the CityGML Utility Network ADE (revision 6878ab0).
 git clone https://github.com/gioagu/3dcitydb_utility_network_ade.git
 cd 3dcitydb_utility_network_ade
-git checkout 6878ab0
+git checkout 6878ab0 --quiet
 "$PGBIN/psql" -h localhost -p $PORT -d $DBNAME -U $DBUSER -f "INSTALL_Utility_Network_ADE.sql"
 cd ..
 
@@ -85,7 +85,7 @@ cd ..
 # Retrieve and install the CityGML Scenario ADE (revision 954cf0b).
 git clone https://github.com/gioagu/3dcitydb_scenario_ade.git
 cd 3dcitydb_scenario_ade
-git checkout 954cf0b
+git checkout 954cf0b --quiet
 "$PGBIN/psql" -h localhost -p $PORT -d $DBNAME -U $DBUSER -f "INSTALL_Scenario_ADE.sql"
 cd ..
 
@@ -93,6 +93,6 @@ cd ..
 # Retrieve and install the Simulation Package (revision a7e40bc).
 git clone https://github.com/gioagu/3dcitydb_simulation_pkg.git
 cd 3dcitydb_simulation_pkg
-git checkout a7e40bc
+git checkout a7e40bc --quiet
 "$PGBIN/psql" -h localhost -p $PORT -d $DBNAME -U $DBUSER -f "INSTALL_Simulation_PKG.sql"
 cd ..
