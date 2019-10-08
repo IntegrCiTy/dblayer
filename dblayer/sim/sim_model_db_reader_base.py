@@ -1,7 +1,7 @@
 
 import abc
 
-from dblayer import *
+from dblayer.access import *
 from dblayer.func.func_postgis_geom import *
 
 from pygeoif import from_wkt

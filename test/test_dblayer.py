@@ -4,6 +4,9 @@ import os
 import sqlalchemy.orm.exc
 
 from dblayer import *
+from dblayer.reader import *
+from dblayer.writer import *
+from dblayer.access import *
 from dblayer.func.func_citydb_pkg import *
 from dblayer.func.func_citydb_view import *
 from dblayer.func.func_citydb_view_nrg import *
@@ -38,7 +41,7 @@ def fix_connect():
         pwd = 'postgres',
         host = 'localhost',
         port = '5432',
-        dbname = 'testdb'
+        dbname = 'citydb'
     )
 
 
