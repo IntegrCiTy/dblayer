@@ -4,7 +4,7 @@
 CONTAINERNAME=${CONTAINERNAME:-citydb-container}
 
 # Tag of the 3DCityDB PostGIS Docker container (default=None).
-CONTAINERTAG=${CONTAINERTAG:-}
+CONTAINERTAG=${CONTAINERTAG:-:v3.3.1}
 
 # Port for the 3DCityDB PostGIS Docker container to listen on (default=5432).
 PORT=${PORT:-5432}
@@ -27,7 +27,6 @@ SRSNAME=${SRSNAME:-urn:ogc:def:crs:EPSG::4326}
 # Path to binary "psql" (default=/usr/bin).
 PGBIN=${PGBIN:-/usr/bin}
 
-
 # Deploy 3DCityDB as Docker container.
 docker run -dit --name "$CONTAINERNAME" \
     -p $PORT:5432 \
@@ -36,7 +35,7 @@ docker run -dit --name "$CONTAINERNAME" \
     -e "CITYDBNAME=$DBNAME" \
     -e "SRID=$SRID" \
     -e "SRSNAME=$SRSNAME" \
-    tumgis/3dcitydb-postgis"$CONTAINERTAG"
+    tumgis/3dcitydb-postgis$CONTAINERTAG
 
 
 # Set password for database as environment variable.

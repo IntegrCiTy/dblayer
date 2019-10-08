@@ -16,7 +16,7 @@ REM Password for the 3DCityDB.
 SET DBPASSWORD=postgres
 
 REM Database name for the 3DCityDB.
-SET DBNAME=testdb
+SET DBNAME=citydb
 
 REM SRID of the spatial reference system of the 3DCityDB.
 SET SRID=4326

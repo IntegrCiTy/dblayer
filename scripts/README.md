@@ -12,7 +12,7 @@ The following software needs to be installed before running the script:
 ## Customized installation process
 
 The installation process can be customized by defining the following variables in the terminal prior to execution:
- * `CONTAINERNAME`: name for the 3DCityDB PostGIS Docker container (default: citydb-container)
+ * `CONTAINERNAME`: name for the 3DCityDB PostGIS Docker container (default: :v3.3.1)
  * `CONTAINERTAG`: tag of the 3DCityDB PostGIS Docker container (default: none)
  * `PORT`: port for the 3DCityDB PostGIS Docker container to listen on (default: 5432)
  * `DBUSER`: user name for the 3DCityDB (default: postgres)
@@ -27,7 +27,7 @@ The installation process can be customized by defining the following variables i
 The following example shows how to execute the script with non-default values for `DBNAME` and `CONTAINERTAG`:
 ```shell
 export DBNAME=testdb
-export CONTAINERTAG=:v3.3.1
+export CONTAINERTAG=:v4.0.1
 
 ./setup_extended_3dcitydb.sh
 ```
@@ -51,7 +51,7 @@ The installation process can be customized by changing the following parameters 
  * `PORT`: port for the 3DCityDB PostGIS Docker container to listen on (default: 5432)
  * `DBUSER`: user name for the 3DCityDB (default: postgres)
  * `DBPASSWORD`: password for the 3DCityDB (default: postgres)
- * `DBNAME`: database name for the 3DCityDB (default: testdb)
+ * `DBNAME`: database name for the 3DCityDB (default: citydb)
  * `SRID`: ID of the spatial reference system of the 3DCityDB (default: 4326)
  * `SRSNAME`: name of the spatial reference system to use for the 3DCityDB (default: urn:ogc:def:crs:EPSG::4326)
  * `PGBIN`: path to binary `psql.exe` (default: C:\Tools\PostgreSQL\9.4\bin)
