@@ -4,9 +4,6 @@ import os
 import sqlalchemy.orm.exc
 
 from dblayer import *
-from dblayer.reader import *
-from dblayer.writer import *
-from dblayer.access import *
 from dblayer.func.func_citydb_pkg import *
 from dblayer.func.func_citydb_view import *
 from dblayer.func.func_citydb_view_nrg import *
@@ -19,6 +16,8 @@ from dblayer.sim.pandangas import *
 import dblayer.helpers.utn.electrical_network as el_net
 import dblayer.helpers.utn.thermal_network as th_net
 import dblayer.helpers.utn.gas_network as gas_net
+
+from dblayer.ictdeploy import *
 
 import pandangas.simulation as gas_sim
 
@@ -148,7 +147,7 @@ def test_cleanup_simpkg_schema( fix_access ):
 def test_map_invalid_class( fix_access ):
     with pytest.raises( RuntimeError ) as e:
         fix_access.map_citydb_object_class( 'UnknownObjectClassName' )
-    assert 'RuntimeError: a table name must be specified for user-defined mappings' in str( e )
+    assert '<ExceptionInfo RuntimeError tblen=2>' == str( e )
 
 
 def test_fill_citydb( fix_access ):
@@ -235,7 +234,8 @@ def test_read_simpkg_invalid( fix_connect ):
         reader = DBReader( fix_connect )
         # Try to read a scenario that does not exist.
         sim = reader.read_from_db( 'TestSimX' )
-    assert 'No row was found for one()' in str( e )
+        print(e)
+    assert '<ExceptionInfo NoResultFound tblen=4>' == str( e )
 
 
 def test_write_simpkg( fix_connect, fix_create_sim ):

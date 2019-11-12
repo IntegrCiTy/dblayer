@@ -1,5 +1,5 @@
-from .access import *
-from .func.func_simpkg import *
+from dblayer.access import *
+from dblayer.func.func_simpkg import *
 
 import ictdeploy
 
