@@ -1,6 +1,3 @@
-from ictdeploy import Simulator
-
-
 # def associate_to_citydb_object( value, table_name, object_id, column_name ):
     # DBAssociateObject = type(
         # 'DBAssociateObjectTo' + value.__class__.__name__.capitalize(),

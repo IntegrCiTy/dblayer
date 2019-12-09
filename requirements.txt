@@ -1,3 +1,2 @@
-sqlalchemy
-psycopg2-binary
-pygeoif
+# The next line will install dependencies from "setup.py" and the package itself.
+.

@@ -18,7 +18,7 @@ Furthermore, a working **PostgreSQL** implementation of the [3DCityDB](https://w
 See subfolder `../scripts` for instructions.
 
 For the tests to work properly, file `test_dblayer.py` has to be adapted to the configuration of this database:
- * Adapt the `PostgreSQLConnectionInfo` in function `fix_connect()` your actual  database implementation. By *default*, it is assumed that the database name is `testdb`, that it is installed locally (and accessible via standard port 5432) and that it can be accessed by a user called `postgres` (with password `postgres`).
+ * Adapt the `PostgreSQLConnectionInfo` in function `fix_connect()` your actual  database implementation. By *default*, it is assumed that the database name is `citydb`, that it is installed locally (and accessible via standard port 5432) and that it can be accessed by a user called `postgres` (with password `postgres`).
  * Adapt the *spatial reference ID* (SRID) in function `fix_srid()` your actual  database implementation. By *default*, it is assumed that the SRID is `4326`.
 
 

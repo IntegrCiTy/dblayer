@@ -13,7 +13,7 @@ Notebook **DBLayerBasics.ipynb** gives a short overview of the most basic functi
 
 ## Simulation Package
 
-Notebook **SimulationPackage.ipynb** shows how co-simulation setups can be written/read to/from the database.
+Notebook **SimulationPackage.ipynb** shows how co-simulation setups for the [IntegrCiTy co-simulation platform](https://github.com/IntegrCiTy/zerobnl) can be written/read to/from the database.
 
 
 ## Power grid models

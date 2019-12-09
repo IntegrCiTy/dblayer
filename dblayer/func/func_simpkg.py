@@ -1,5 +1,10 @@
 from sqlalchemy.sql import func
 
+import warnings
+
+from urllib.parse import urlparse
+import os.path
+
 
 ### For some reason this function does not work ...
 def func_cleanup_schema():
@@ -77,7 +82,7 @@ def func_insert_node_template( node_name ):
         )
 
 
-def func_insert_port( node_id, type, port_name ):
+def func_insert_port( node_id, type, port_name, port_unit ):
     """
     Define function call to insert input port into the database.
     """
@@ -93,7 +98,7 @@ def func_insert_port( node_id, type, port_name ):
         port_name, # name (character varying)
         None, # name_codespace (character varying)
         port_name, # variable_name (character varying)
-        None, # variable_type (character varying)
+        port_unit, # variable_type (character varying)
         None, # cityobject_id (integer)
         None  # description (text)
         )
@@ -153,7 +158,7 @@ def func_insert_tool( name ):
         )
 
 
-def func_insert_real_parameter_tool( tool_id, name, value, unit = None ):
+def func_insert_real_parameter_tool( tool_id, name, value, unit = None, description = None ):
     """
     Define function call to insert real parameter associated to simulation tool into the database.
     """
@@ -174,7 +179,7 @@ def func_insert_real_parameter_tool( tool_id, name, value, unit = None ):
         None, # is_init_parameter boolean
         None, # id (integer)
         None, # name_codespace (character varying)
-        None, # description (text)
+        description, # description (text)
         None, # citydb_table_name (character varying)
         None, # citydb_object_id (integer)
         None, # citydb_column_name (character)
@@ -193,7 +198,7 @@ def func_insert_real_parameter_tool( tool_id, name, value, unit = None ):
         )
 
 
-def func_insert_integer_parameter_tool( tool_id, name, value, unit = None ):
+def func_insert_integer_parameter_tool( tool_id, name, value, unit = None, description = None ):
     """
     Define function call to insert integer parameter associated to simulation tool into the database.
     """
@@ -214,7 +219,7 @@ def func_insert_integer_parameter_tool( tool_id, name, value, unit = None ):
         None, # is_init_parameter boolean
         None, # id (integer)
         None, # name_codespace (character varying)
-        None, # description (text)
+        description, # description (text)
         None, # citydb_table_name (character varying)
         None, # citydb_object_id (integer)
         None, # citydb_column_name (character)
@@ -233,7 +238,7 @@ def func_insert_integer_parameter_tool( tool_id, name, value, unit = None ):
         )
 
 
-def func_insert_string_parameter_tool( tool_id, name, value ):
+def func_insert_string_parameter_tool( tool_id, name, value, description = None ):
     """
     Define function call to insert string parameter associated to simulation tool into the database.
     """
@@ -251,7 +256,7 @@ def func_insert_string_parameter_tool( tool_id, name, value ):
         None, # is_init_parameter boolean
         None, # id (integer)
         None, # name_codespace (character varying)
-        None, # description (text)
+        description, # description (text)
         None, # citydb_table_name (character varying)
         None, # citydb_object_id (integer)
         None, # citydb_column_name (character)
@@ -270,7 +275,7 @@ def func_insert_string_parameter_tool( tool_id, name, value ):
         )
 
 
-def func_insert_array_parameter_tool( tool_id, name, value, unit = None ):
+def func_insert_array_parameter_tool( tool_id, name, value, unit = None, description = None ):
     """
     Define function call to insert array parameter associated to simulation tool into the database.
     """
@@ -291,7 +296,7 @@ def func_insert_array_parameter_tool( tool_id, name, value, unit = None ):
         None, # is_init_parameter boolean
         None, # id (integer)
         None, # name_codespace (character varying)
-        None, # description (text)
+        description, # description (text)
         None, # citydb_table_name (character varying)
         None, # citydb_object_id (integer)
         None, # citydb_column_name (character)
@@ -310,7 +315,52 @@ def func_insert_array_parameter_tool( tool_id, name, value, unit = None ):
         )
 
 
-def func_insert_real_parameter_node( node_id, name, value, unit = None ):
+def func_insert_uri_parameter_tool( tool_id, name, value, description = None ):
+    """
+    Define function call to insert URI parameter associated to tool into the database.
+    """
+    if not isinstance( tool_id, int ):
+        raise TypeError( 'parameter \'tool_id\' must be of type \'int\'' )
+
+    if not isinstance( name, str ):
+        raise TypeError( 'parameter \'name\' must be of type \'str\'' )
+
+    if not isinstance( value, str ):
+        raise TypeError( 'parameter \'value\' must be of type \'str\'' )
+
+    parsed_uri = urlparse( value )
+
+    if parsed_uri.scheme != 'file':
+        raise TypeError( 'parameter \'value\' must comply to the file URI scheme' )
+
+    if False == os.path.exists( parsed_uri.path ):
+        warnings.warn( 'file does not exist: {}'.format( parsed_uri.path ), RuntimeWarning )
+
+    return func.sim_pkg.insert_generic_parameter(
+        name, # name (character varying)
+        None, # is_init_parameter boolean
+        None, # id (integer)
+        None, # name_codespace (character varying)
+        description, # description (text)
+        None, # citydb_table_name (character varying)
+        None, # citydb_object_id (integer)
+        None, # citydb_column_name (character)
+        None, # citydb_genericattrib_name (character varying)
+        None, # citydb_function (character varying)
+        None, # strval (character varying)
+        None, # intval (integer)
+        None, # realval (numeric)
+        None, # arrayval (numeric[])
+        value, # urival (character varying)
+        None, # dateval (timestamp with time zone)
+        None, # unit (character varying)
+        tool_id, # tool_id (integer)
+        None, # node_id (integer)
+        None, # simulation_id (integer)
+        )
+
+
+def func_insert_real_parameter_node( node_id, name, value, unit = None, description = None ):
     """
     Define function call to insert real parameter associated to node into the database.
     """
@@ -331,7 +381,7 @@ def func_insert_real_parameter_node( node_id, name, value, unit = None ):
         None, # is_init_parameter boolean
         None, # id (integer)
         None, # name_codespace (character varying)
-        None, # description (text)
+        description, # description (text)
         None, # citydb_table_name (character varying)
         None, # citydb_object_id (integer)
         None, # citydb_column_name (character)
@@ -350,7 +400,7 @@ def func_insert_real_parameter_node( node_id, name, value, unit = None ):
         )
 
 
-def func_insert_integer_parameter_node( node_id, name, value, unit = None ):
+def func_insert_integer_parameter_node( node_id, name, value, unit = None, description = None ):
     """
     Define function call to insert integer parameter associated to node into the database.
     """
@@ -371,7 +421,7 @@ def func_insert_integer_parameter_node( node_id, name, value, unit = None ):
         None, # is_init_parameter boolean
         None, # id (integer)
         None, # name_codespace (character varying)
-        None, # description (text)
+        description, # description (text)
         None, # citydb_table_name (character varying)
         None, # citydb_object_id (integer)
         None, # citydb_column_name (character)
@@ -390,7 +440,7 @@ def func_insert_integer_parameter_node( node_id, name, value, unit = None ):
         )
 
 
-def func_insert_string_parameter_node( node_id, name, value ):
+def func_insert_string_parameter_node( node_id, name, value, description = None ):
     """
     Define function call to insert string parameter associated to node into the database.
     """
@@ -408,7 +458,7 @@ def func_insert_string_parameter_node( node_id, name, value ):
         None, # is_init_parameter boolean
         None, # id (integer)
         None, # name_codespace (character varying)
-        None, # description (text)
+        description, # description (text)
         None, # citydb_table_name (character varying)
         None, # citydb_object_id (integer)
         None, # citydb_column_name (character)
@@ -427,7 +477,7 @@ def func_insert_string_parameter_node( node_id, name, value ):
         )
 
 
-def func_insert_array_parameter_node( node_id, name, value, unit = None ):
+def func_insert_array_parameter_node( node_id, name, value, unit = None, description = None ):
     """
     Define function call to insert array parameter associated to node into the database.
     """
@@ -448,7 +498,7 @@ def func_insert_array_parameter_node( node_id, name, value, unit = None ):
         None, # is_init_parameter boolean
         None, # id (integer)
         None, # name_codespace (character varying)
-        None, # description (text)
+        description, # description (text)
         None, # citydb_table_name (character varying)
         None, # citydb_object_id (integer)
         None, # citydb_column_name (character)
@@ -467,7 +517,52 @@ def func_insert_array_parameter_node( node_id, name, value, unit = None ):
         )
 
 
-def func_insert_real_init_val_node( node_id, name, value, unit = None ):
+def func_insert_uri_parameter_node( node_id, name, value, description = None ):
+    """
+    Define function call to insert URI parameter associated to node into the database.
+    """
+    if not isinstance( node_id, int ):
+        raise TypeError( 'parameter \'node_id\' must be of type \'int\'' )
+
+    if not isinstance( name, str ):
+        raise TypeError( 'parameter \'name\' must be of type \'str\'' )
+
+    if not isinstance( value, str ):
+        raise TypeError( 'parameter \'value\' must be of type \'str\'' )
+
+    parsed_uri = urlparse( value )
+
+    if parsed_uri.scheme != 'file':
+        raise TypeError( 'parameter \'value\' must comply to the file URI scheme' )
+
+    if False == os.path.exists( parsed_uri.path ):
+        warnings.warn( 'file does not exist: {}'.format( parsed_uri.path ), RuntimeWarning )
+
+    return func.sim_pkg.insert_generic_parameter(
+        name, # name (character varying)
+        None, # is_init_parameter boolean
+        None, # id (integer)
+        None, # name_codespace (character varying)
+        description, # description (text)
+        None, # citydb_table_name (character varying)
+        None, # citydb_object_id (integer)
+        None, # citydb_column_name (character)
+        None, # citydb_genericattrib_name (character varying)
+        None, # citydb_function (character varying)
+        None, # strval (character varying)
+        None, # intval (integer)
+        None, # realval (numeric)
+        None, # arrayval (numeric[])
+        value, # urival (character varying)
+        None, # dateval (timestamp with time zone)
+        None, # unit (character varying)
+        None, # tool_id (integer)
+        node_id, # node_id (integer)
+        None, # simulation_id (integer)
+        )
+
+
+def func_insert_real_init_val_node( node_id, name, value, unit = None, description = None ):
     """
     Define function call to insert real parameter associated to node into the database.
     """
@@ -487,7 +582,7 @@ def func_insert_real_init_val_node( node_id, name, value, unit = None ):
         name, # name (character varying)
         None, # id (integer)
         None, # name_codespace (character varying)
-        None, # description (text)
+        description, # description (text)
         None, # citydb_table_name (character varying)
         None, # citydb_object_id (integer)
         None, # citydb_column_name (character)
@@ -506,7 +601,7 @@ def func_insert_real_init_val_node( node_id, name, value, unit = None ):
         )
 
 
-def func_insert_integer_init_val_node( node_id, name, value, unit = None ):
+def func_insert_integer_init_val_node( node_id, name, value, unit = None, description = None ):
     """
     Define function call to insert integer parameter associated to node into the database.
     """
@@ -526,7 +621,7 @@ def func_insert_integer_init_val_node( node_id, name, value, unit = None ):
         name, # name (character varying)
         None, # id (integer)
         None, # name_codespace (character varying)
-        None, # description (text)
+        description, # description (text)
         None, # citydb_table_name (character varying)
         None, # citydb_object_id (integer)
         None, # citydb_column_name (character)
@@ -545,7 +640,7 @@ def func_insert_integer_init_val_node( node_id, name, value, unit = None ):
         )
 
 
-def func_insert_string_init_val_node( node_id, name, value ):
+def func_insert_string_init_val_node( node_id, name, value, description = None ):
     """
     Define function call to insert string parameter associated to node into the database.
     """
@@ -562,7 +657,7 @@ def func_insert_string_init_val_node( node_id, name, value ):
         name, # name (character varying)
         None, # id (integer)
         None, # name_codespace (character varying)
-        None, # description (text)
+        description, # description (text)
         None, # citydb_table_name (character varying)
         None, # citydb_object_id (integer)
         None, # citydb_column_name (character)
@@ -581,7 +676,7 @@ def func_insert_string_init_val_node( node_id, name, value ):
         )
 
 
-def func_insert_array_init_val_node( node_id, name, value, unit = None ):
+def func_insert_array_init_val_node( node_id, name, value, unit = None, description = None ):
     """
     Define function call to insert array parameter associated to node into the database.
     """
@@ -601,7 +696,7 @@ def func_insert_array_init_val_node( node_id, name, value, unit = None ):
         name, # name (character varying)
         None, # id (integer)
         None, # name_codespace (character varying)
-        None, # description (text)
+        description, # description (text)
         None, # citydb_table_name (character varying)
         None, # citydb_object_id (integer)
         None, # citydb_column_name (character)
@@ -620,7 +715,7 @@ def func_insert_array_init_val_node( node_id, name, value, unit = None ):
         )
 
 
-def func_insert_object_ref_init_val_node( node_id, name, table_name, object_id, column_name, unit = None ):
+def func_insert_object_ref_init_val_node( node_id, name, table_name, object_id, column_name, unit = None, description = None ):
     """
     Define function call to insert array parameter associated to node into the database.
     """
@@ -646,7 +741,7 @@ def func_insert_object_ref_init_val_node( node_id, name, table_name, object_id, 
         name, # name (character varying)
         None, # id (integer)
         None, # name_codespace (character varying)
-        None, # description (text)
+        description, # description (text)
         table_name, # citydb_table_name (character varying)
         object_id, # citydb_object_id (integer)
         column_name, # citydb_column_name (character)
@@ -665,7 +760,7 @@ def func_insert_object_ref_init_val_node( node_id, name, table_name, object_id, 
         )
 
 
-def func_insert_generic_attr_ref_init_val_node( node_id, name, attribute_name, attribute_id, unit = None ):
+def func_insert_generic_attr_ref_init_val_node( node_id, name, attribute_name, attribute_id, unit = None, description = None ):
     """
     Define function call to insert array parameter associated to node into the database.
     """
@@ -688,7 +783,7 @@ def func_insert_generic_attr_ref_init_val_node( node_id, name, attribute_name, a
         name, # name (character varying)
         None, # id (integer)
         None, # name_codespace (character varying)
-        None, # description (text)
+        description, # description (text)
         None, # citydb_table_name (character varying)
         attribute_id, # citydb_object_id (integer)
         None, # citydb_column_name (character)
@@ -707,7 +802,7 @@ def func_insert_generic_attr_ref_init_val_node( node_id, name, attribute_name, a
         )
 
 
-def func_insert_string_parameter_simulation( sim_id, name, value ):
+def func_insert_string_parameter_simulation( sim_id, name, value, description = None ):
     """
     Define function call to insert string parameter associated to simulation into the database.
     """
@@ -725,7 +820,7 @@ def func_insert_string_parameter_simulation( sim_id, name, value ):
         None, # is_init_parameter boolean
         None, # id (integer)
         None, # name_codespace (character varying)
-        None, # description (text)
+        description, # description (text)
         None, # citydb_table_name (character varying)
         None, # citydb_object_id (integer)
         None, # citydb_column_name (character)
@@ -744,7 +839,7 @@ def func_insert_string_parameter_simulation( sim_id, name, value ):
         )
 
 
-def func_insert_array_parameter_simulation( sim_id, name, value, unit = None ):
+def func_insert_array_parameter_simulation( sim_id, name, value, unit = None, description = None ):
     """
     Define function call to insert array parameter associated to node into the database.
     """
@@ -765,7 +860,7 @@ def func_insert_array_parameter_simulation( sim_id, name, value, unit = None ):
         None, # is_init_parameter boolean
         None, # id (integer)
         None, # name_codespace (character varying)
-        None, # description (text)
+        description, # description (text)
         None, # citydb_table_name (character varying)
         None, # citydb_object_id (integer)
         None, # citydb_column_name (character)
@@ -778,6 +873,51 @@ def func_insert_array_parameter_simulation( sim_id, name, value, unit = None ):
         None, # urival (character varying)
         None, # dateval (timestamp with time zone)
         unit, # unit (character varying)
+        None, # tool_id (integer)
+        None, # node_id (integer)
+        sim_id, # simulation_id (integer)
+        )
+
+
+def func_insert_uri_parameter_simulation( sim_id, name, value, description = None ):
+    """
+    Define function call to insert URI parameter associated to simulation into the database.
+    """
+    if not isinstance( sim_id, int ):
+        raise TypeError( 'parameter \'sim_id\' must be of type \'int\'' )
+
+    if not isinstance( name, str ):
+        raise TypeError( 'parameter \'name\' must be of type \'str\'' )
+
+    if not isinstance( value, str ):
+        raise TypeError( 'parameter \'value\' must be of type \'str\'' )
+
+    parsed_uri = urlparse( value )
+
+    if parsed_uri.scheme != 'file':
+        raise TypeError( 'parameter \'value\' must comply to the file URI scheme' )
+
+    if False == os.path.exists( parsed_uri.path ):
+        warnings.warn( 'file does not exist: {}'.format( parsed_uri.path ), RuntimeWarning )
+
+    return func.sim_pkg.insert_generic_parameter(
+        name, # name (character varying)
+        None, # is_init_parameter boolean
+        None, # id (integer)
+        None, # name_codespace (character varying)
+        description, # description (text)
+        None, # citydb_table_name (character varying)
+        None, # citydb_object_id (integer)
+        None, # citydb_column_name (character)
+        None, # citydb_genericattrib_name (character varying)
+        None, # citydb_function (character varying)
+        None, # strval (character varying)
+        None, # intval (integer)
+        None, # realval (numeric)
+        None, # arrayval (numeric[])
+        value, # urival (character varying)
+        None, # dateval (timestamp with time zone)
+        None, # unit (character varying)
         None, # tool_id (integer)
         None, # node_id (integer)
         sim_id, # simulation_id (integer)

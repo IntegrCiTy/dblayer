@@ -9,3 +9,10 @@ examples/.ipynb_checkpoints
 
 # Ignore pyc files.
 *.pyc
+
+# Ignore files from testing.
+*.log
+*TMP_FOLDER
+
+# Ignore files from running the CityDB installation scripts.
+*3dcitydb_*

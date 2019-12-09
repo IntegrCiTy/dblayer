@@ -4,9 +4,6 @@ import os
 import sqlalchemy.orm.exc
 
 from dblayer import *
-from dblayer.reader import *
-from dblayer.writer import *
-from dblayer.access import *
 from dblayer.func.func_citydb_pkg import *
 from dblayer.func.func_citydb_view import *
 from dblayer.func.func_citydb_view_nrg import *
@@ -20,12 +17,15 @@ import dblayer.helpers.utn.electrical_network as el_net
 import dblayer.helpers.utn.thermal_network as th_net
 import dblayer.helpers.utn.gas_network as gas_net
 
-import pandangas.simulation as gas_sim
+from dblayer.zerobnl.reader import *
+from dblayer.zerobnl.writer import *
 
-import ictdeploy
+import pandangas.simulation as gas_sim
 
 import pandas as pd
 import networkx as nx
+
+import zerobnl
 
 
 @pytest.fixture()
@@ -62,58 +62,72 @@ def fix_access( fix_connect ):
 
 
 @pytest.fixture()
-def fix_create_sim():
+def fix_dockerfile():
+    '''
+    Specify name of dummy Dockerfile.
+    '''
+    return 'Dockerfile_base'
+
+
+@pytest.fixture()
+def fix_wrapper():
+    '''
+    Specify name of dummy wrapper.
+    '''
+    return 'wrapper_base.py'
+
+
+@pytest.fixture()
+def fix_create_sim( fix_dockerfile, fix_wrapper ):
     '''
     Fixture for testing. Creates a simple ready-to-run co-simulation setup.
 
-    :return: simulation setup with meta, models, nodes, links, groups, sequence and steps implemented (ictdeploy.Simulator)
+    :return: simulation setup with meta, envs, nodes, links, sequence and steps implemented (zerobnl.CoSim)
     '''
     # Create simulation setup.
-    sim = ictdeploy.Simulator()
+    sim = zerobnl.CoSim()
 
     # Add meta model.
-    sim.edit.add_meta(
-        name = 'BaseMeta',
-        set_attrs = [ 'a' ],
-        get_attrs = [ 'b' ]
+    sim.create_meta_model(
+        meta_model = 'MetaBase',
+        list_of_attrs_to_set = [ ( 'a', 'unit' ) ],
+        list_of_attrs_to_get = [ ( 'b', 'unit' ) ]
     )
 
-    # Add model based on meta model.
-    sim.edit.add_model(
-        name = 'BaseModel',
-        meta = 'BaseMeta',
-        image = 'integrcity/ict-simple',
-        wrapper = os.path.join( 'tests', 'wrappers', 'base_wrap.py' ),
-        command = None,
-        files = [ os.path.join( 'tests', 'files_to_add', 'empty_file_for_testing_purpose.txt' ) ]
+    # Add environment for instances of the meta model.
+    sim.create_environment(
+        env = 'EnvBase',
+        wrapper = os.path.join( os.path.dirname( __file__ ), 'data', fix_wrapper ),
+        dockerfile = os.path.join( os.path.dirname( __file__ ), 'data', fix_dockerfile )
     )
 
-    # Add node based on model.
-    sim.edit.add_node(
-        name = 'Base0',
-        model = 'BaseModel',
-        init_values = { 'c': 0.5 },
-        is_first = True
+    # Add node based on meta model and environment.
+    sim.add_node(
+        node = 'Base0',
+        meta = 'MetaBase',
+        env = 'EnvBase',
+        init_values = { 'c': .5 },
+        files = [ os.path.join( os.path.dirname( __file__ ), 'data', 'dummy_file.txt' ) ]
     )
 
-    # Add another node based on model.
-    sim.edit.add_node(
-        name = 'Base1',
-        model = 'BaseModel',
-        init_values = { 'c': 0.25 }
+    # Add another node based on meta model and environment.
+    sim.add_node(
+        node = 'Base1',
+        meta = 'MetaBase',
+        env = 'EnvBase',
+        init_values = { 'c': .25 }
     )
 
     # Define links between nodes.
-    sim.edit.add_link( get_node = 'Base0', get_attr = 'b', set_node = 'Base1', set_attr = 'a' )
-    sim.edit.add_link( get_node = 'Base1', get_attr = 'b', set_node = 'Base0', set_attr = 'a' )
+    sim.add_link( get_node = 'Base0', get_attr = 'b', set_node = 'Base1', set_attr = 'a' )
+    sim.add_link( get_node = 'Base1', get_attr = 'b', set_node = 'Base0', set_attr = 'a' )
 
     # Define simulation groups and sequence.
-    grp0 = sim.create_group( 'Base0' )
-    grp1 = sim.create_group( 'Base1' )
-    sim.create_sequence( grp0, grp1 )
+    sim.create_sequence( [ [ 'Base0' ], [ 'Base1' ] ] )
 
     # Define simulation time steps.
-    sim.create_steps( [60] * 10 )
+    sim.set_time_unit( 'seconds' )
+    sim.create_steps( [15] * 4 * 60 )
 
     return sim
 
@@ -148,7 +162,7 @@ def test_cleanup_simpkg_schema( fix_access ):
 def test_map_invalid_class( fix_access ):
     with pytest.raises( RuntimeError ) as e:
         fix_access.map_citydb_object_class( 'UnknownObjectClassName' )
-    assert 'RuntimeError: a table name must be specified for user-defined mappings' in str( e )
+    assert 0 != len( str( e ) )
 
 
 def test_fill_citydb( fix_access ):
@@ -235,7 +249,7 @@ def test_read_simpkg_invalid( fix_connect ):
         reader = DBReader( fix_connect )
         # Try to read a scenario that does not exist.
         sim = reader.read_from_db( 'TestSimX' )
-    assert 'No row was found for one()' in str( e )
+    assert '<ExceptionInfo NoResultFound tblen=4>' == str( e )
 
 
 def test_write_simpkg( fix_connect, fix_create_sim ):
@@ -250,7 +264,7 @@ def test_write_simpkg( fix_connect, fix_create_sim ):
 #             self.assertEqual( str( e ) )
 
 
-def test_write_and_read_simpkg( fix_connect, fix_create_sim ):
+def test_write_and_read_simpkg( fix_connect, fix_create_sim, fix_dockerfile, fix_wrapper ):
     # Define simulation setup name.
     sim_name = 'TestSim1'
 
@@ -258,32 +272,31 @@ def test_write_and_read_simpkg( fix_connect, fix_create_sim ):
     # they have already been written to the database in one of the previous tests.
     sim_write = fix_create_sim
     writer = DBWriter( fix_connect )
-    writer.write_to_db( sim_write, sim_name, write_meta_models = False, write_models = False )
+    writer.write_to_db( sim_write, sim_name, write_meta_models = False, write_envs = False )
 
     # Read simulation setup from database.
     reader = DBReader( fix_connect )
     sim_read = reader.read_from_db( sim_name )
 
-    assert type( sim_read.edit.links ) is pd.DataFrame
-    assert type( sim_read.edit.graph ) is nx.MultiDiGraph
-    assert len( sim_read.edit.nodes ) == 2
-    assert len( sim_read.edit.links ) == 2
-    for _, row in  sim_read.edit.nodes.iterrows():
-        assert row[ 'model' ] == 'BaseModel'
-        assert row[ 'meta' ] == 'BaseMeta'
-        assert row[ 'to_set' ] == [ 'a' ]
-        assert row[ 'to_get' ] == [ 'b' ]
-        assert row[ 'image' ] == 'integrcity/ict-simple'
-        assert row[ 'wrapper' ] == os.path.join( 'tests', 'wrappers', 'base_wrap.py' )
-        assert row[ 'files' ] == [ os.path.join( 'tests', 'files_to_add', 'empty_file_for_testing_purpose.txt' ) ]
-        assert row[ 'command' ] is None
-    assert( sim_read.edit.nodes.loc[ 'Base0' ].init_values[ 'c' ] == 0.5 )
-    assert( sim_read.edit.nodes.loc[ 'Base1' ].init_values[ 'c' ] == 0.25 )
-    g_dict =  sim_read.edit.interaction_graph
-    assert len( g_dict[ 'links' ] ) == 2
-    assert len( g_dict[ 'nodes' ] ) == 2
-    assert  sim_read.steps == [ 60, 60, 60, 60, 60, 60, 60, 60, 60, 60 ]
-    assert  sim_read.sequence == [ ( 'Base0', ), ( 'Base1', ) ]
+    assert type( sim_read.nodes ) is pd.DataFrame
+    assert type( sim_read.links ) is pd.DataFrame
+    assert len( sim_read.nodes ) == 2
+    assert len( sim_read.links ) == 2
+    for _, row in  sim_read.nodes.iterrows():
+        assert row[ 'Env' ] == 'EnvBase'
+        assert row[ 'Meta' ] == 'MetaBase'
+        assert row[ 'ToSet' ] == [ ( 'a', 'unit' ) ]
+        assert row[ 'ToGet' ] == [ ( 'b', 'unit' ) ]
+        assert row[ 'Dockerfile' ] == os.path.join( os.path.dirname( __file__ ), 'data', fix_dockerfile )
+        assert row[ 'Wrapper' ] == os.path.join( os.path.dirname( __file__ ), 'data', fix_wrapper )
+        assert row[ 'Local' ] == False
+        assert row[ 'Parameters' ] == {}
+    assert sim_read.nodes.loc[ 'Base0' ].InitVal[ 'c' ] == 0.5
+    assert sim_read.nodes.loc[ 'Base1' ].InitVal[ 'c' ] == 0.25
+    assert sim_read.nodes.loc[ 'Base0' ].Files == [ os.path.join( os.path.dirname( __file__ ), 'data', 'dummy_file.txt' ) ]
+    assert sim_read.nodes.loc[ 'Base1' ].Files == []
+    assert  sim_read.steps == [15] * 4 * 60
+    assert  sim_read.sequence == [ [ 'Base0' ], [ 'Base1' ] ]
 
 
 def test_write_and_read_associate_simpkg( fix_connect, fix_access, fix_create_sim ):
@@ -303,20 +316,20 @@ def test_write_and_read_associate_simpkg( fix_connect, fix_access, fix_create_si
     attribute_id = attributes[0].id
 
     associated_sim = fix_create_sim
-    associated_sim.edit.nodes.loc[ 'Base0' ].init_values[ 'c' ] = AssociateCityDBObject(
+    associated_sim.nodes.loc[ 'Base0' ].InitVal[ 'c' ] = AssociateCityDBObject(
         table_name = 'citydb_view.nrg8_conv_system_heat_pump', object_id = heatpump_id, column_name = 'nom_effcy' )
-    associated_sim.edit.nodes.loc[ 'Base1' ].init_values[ 'c' ] = AssociateCityDBGenericAttribute(
+    associated_sim.nodes.loc[ 'Base1' ].InitVal[ 'c' ] = AssociateCityDBGenericAttribute(
         attribute_name = 'BUILDING_02_ATTR_01', attribute_id = attribute_id )
 
     writer = DBWriter( fix_connect )
-    writer.write_to_db( associated_sim, sim_name, write_meta_models = False, write_models = False )
+    writer.write_to_db( associated_sim, sim_name, write_meta_models = False, write_envs = False )
 
     # Read simulation setup from database.
     reader = DBReader( fix_connect )
     sim_read = reader.read_from_db( sim_name )
 
-    assert( sim_read.edit.nodes.loc[ 'Base0' ].init_values[ 'c' ] == 3.4 )
-    assert( sim_read.edit.nodes.loc[ 'Base1' ].init_values[ 'c' ] == 4.5 )
+    assert( sim_read.nodes.loc[ 'Base0' ].InitVal[ 'c' ] == 3.4 )
+    assert( sim_read.nodes.loc[ 'Base1' ].InitVal[ 'c' ] == 4.5 )
 
 
 def test_geom_func( fix_connect, fix_access ):
@@ -352,10 +365,10 @@ def test_geom_func( fix_connect, fix_access ):
 
 
 def test_insert_surface_geometry( fix_access, fix_srid ):
-    
+
     geom_2d_points = [ Point2D( 0., 0. ), Point2D( 0., 1. ), Point2D( 1., 1. ), Point2D( 0., 0. ) ]
 
-    geom = fix_access.execute_function( 
+    geom = fix_access.execute_function(
         geom_from_2dpolygon( geom_2d_points, fix_srid )
         )
 
@@ -364,7 +377,7 @@ def test_insert_surface_geometry( fix_access, fix_srid ):
         geometry = geom
         )
 
-        
+
 def test_fill_citydb_utn_electrical( fix_access, fix_electrical_network_id, fix_srid ):
 
     # Define spatial reference ID.
