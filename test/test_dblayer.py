@@ -249,7 +249,7 @@ def test_read_simpkg_invalid( fix_connect ):
         reader = DBReader( fix_connect )
         # Try to read a scenario that does not exist.
         sim = reader.read_from_db( 'TestSimX' )
-    assert '<ExceptionInfo NoResultFound tblen=4>' == str( e )
+    assert 'ExceptionInfo NoResultFound' in str( e )
 
 
 def test_write_simpkg( fix_connect, fix_create_sim ):
