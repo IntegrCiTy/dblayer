@@ -653,7 +653,7 @@ def func_insert_string_init_val_node( node_id, name, value, description = None )
     if not isinstance( value, str ):
         raise TypeError( 'parameter \'value\' must be of type \'str\'' )
 
-    return func.sim_pkg.insert_generic_parameter(
+    return func.sim_pkg.insert_generic_parameter_init(
         name, # name (character varying)
         None, # id (integer)
         None, # name_codespace (character varying)
