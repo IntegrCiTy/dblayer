@@ -7,6 +7,8 @@ import decimal
 #import pandas
 import json
 
+from datetime import datetime
+
 from os.path import abspath, join
 import urllib.parse
 
@@ -361,6 +363,8 @@ class DBReader( DBAccess ):
 
         if isinstance( result, decimal.Decimal ):
             return float( result )
+        elif isinstance( result, datetime ):
+            return str( result )
 
         return result
 
