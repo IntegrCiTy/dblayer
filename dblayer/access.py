@@ -132,12 +132,12 @@ class DBAccess:
     def get_citydb_objects( self, class_name, table_name = None, schema = None, conditions = None ):
         """
         Retrieve all objects of one type from the database.
-        
+
         :param class_name: name of mapped object class (string)
         :param table: alternative table name (string, optional)
         :param schema: alternative schema name (string, optional)
         :param conditions: list of filters applied when retrieving the objects (list of sqlalchemy.sql.elements.BinaryExpression, optional)
-        
+
         :return: list of results
         """
         # Retrieve mapped class representing the object.
@@ -171,11 +171,11 @@ class DBAccess:
     def join_citydb_objects( self, class_names, conditions, result_index = None ):
         """
         Retrieve selected objects from the database by 'joining' more than one table or view. The tables or views are represented by object classes, which have to mapped before performing this operation.
-        
+
         :param class_names: list name of mapped object class (list of string)
         :param conditions: list of filters applied when retrieving the objects (list of sqlalchemy.sql.elements.BinaryExpression, optional)
         :param result_index: restrict results to the collection output associated to this index, i.e., if result_index == N then only the results for the (N+1)th object class will be returned (int, optional)
-        
+
         :return: list of results, with each entry a collection of associated result objects (list of sqlalchemy.util._collections.result), unless parameter result_index is specified (see above)
         """
         # Retrieve mapped classes representing the objects.

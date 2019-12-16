@@ -316,10 +316,10 @@ def test_write_and_read_associate_simpkg( fix_connect, fix_access, fix_create_si
     attribute_id = attributes[0].id
 
     associated_sim = fix_create_sim
-    associated_sim.nodes.loc[ 'Base0' ].InitVal[ 'c' ] = AssociateCityDBObject(
-        table_name = 'citydb_view.nrg8_conv_system_heat_pump', object_id = heatpump_id, column_name = 'nom_effcy' )
+    associated_sim.nodes.loc[ 'Base0' ].InitVal[ 'c' ] = AssociateCityDBObjectAttribute(
+        obj = heatpumps[0], attr_name = 'nom_effcy' )
     associated_sim.nodes.loc[ 'Base1' ].InitVal[ 'c' ] = AssociateCityDBGenericAttribute(
-        attribute_name = 'BUILDING_02_ATTR_01', attribute_id = attribute_id )
+        attr = attributes[0] )
 
     writer = DBWriter( fix_connect )
     writer.write_to_db( associated_sim, sim_name, write_meta_models = False, write_envs = False )
