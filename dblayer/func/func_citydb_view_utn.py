@@ -848,3 +848,30 @@ def insert_commodity_gaseous_medium(
         pressure_range_to, # numeric, default: NULL::numeric
         pressure_range_unit # character varying, default: NULL::character varying
         )
+
+
+def insert_medium_supply_gaseous(
+    id = None,
+    type = None,
+    cur_flow_rate = None,
+    cur_flow_rate_unit = None,
+    cur_status = None,
+    pot_flow_rate = None,
+    pot_flow_rate_unit = None,
+    pot_status = None,
+    cityobject_id = None,
+    ):
+    """
+    Define function call to insert gaseous medium supply.
+    """
+    return func.citydb_view.utn9_insert_medium_supply_gaseous(
+       id, # integer, default: NULL::integer
+       type, # character varying, default: NULL::character varying
+       cur_flow_rate, # numeric, default: NULL::numeric
+       cur_flow_rate_unit, # character varying, default: NULL::character varying
+       cur_status, # character varying, default: NULL::character varying
+       pot_flow_rate, # numeric, default: NULL::numeric
+       pot_flow_rate_unit, # character varying, default: NULL::character varying
+       pot_status, # character varying, default: NULL::character varying
+       cityobject_id # integer, default: NULL::integer
+       )
