@@ -287,7 +287,13 @@ def write_round_pipe_to_db(
     ext_diameter = None,
     ext_diameter_unit = None,
     int_diameter = None,
-    int_diameter_unit = None
+    int_diameter_unit = None,
+    cur_flow_rate = None,
+    cur_flow_rate_unit = None,
+    cur_status = None,
+    pot_flow_rate = None,
+    pot_flow_rate_unit = None,
+    pot_status = None
     ):
     """
     Insert a n electrical line into the 3DCityDB.
@@ -308,6 +314,12 @@ def write_round_pipe_to_db(
     :param ext_diameter_unit: unit of the external diameter of the pipe (string, optional)
     :param int_diameter: internal diameter of the pipe (float, optional)
     :param int_diameter_unit: unit of the internal diameter of the pipe (string, optional)
+    :param cur_flow_rate: current flow rate of medium (float, optional)
+    :param cur_flow_rate_unit: unit of current flow rate (float, optional)
+    :param cur_status = current status (string, optional)
+    :param pot_flow_rate: supposed flow rate of medium (float, optional)
+    :param pot_flow_rate_unit: unit of supposed flow rate (float, optional)
+    :param pot_status = supposed status (string, optional)
 
     :return: None
     """
@@ -336,6 +348,19 @@ def write_round_pipe_to_db(
         int_diameter = int_diameter,
         int_diameter_unit = int_diameter_unit
         )
+
+    db_access.add_citydb_object(
+        insert_medium_supply_gaseous,
+        type = 'naturalGas',
+        cur_flow_rate = cur_flow_rate,
+        cur_flow_rate_unit = cur_flow_rate_unit,
+        cur_status = cur_status,
+        pot_flow_rate = pot_flow_rate,
+        pot_flow_rate_unit = pot_flow_rate_unit,
+        pot_status = pot_status,
+        cityobject_id = feature_id,
+        )
+
 
 
 def write_station_to_db(
