@@ -16,3 +16,6 @@ examples/.ipynb_checkpoints
 
 # Ignore files from running the CityDB installation scripts.
 *3dcitydb_*
+
+# Ignore emacs back-up files.
+*~
