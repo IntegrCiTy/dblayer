@@ -40,33 +40,34 @@ def insert_scenario(
         envelope, # geometry(PolygonZ), default: NULL::geometry
         creator_name, # varchar, default: NULL::character varying
         creation_date, # timestamptz(0), default: NULL::timestamptz
+        )
 
 
 def insert_scenario_parameter(
-  id = None,
-  type = None,
-  name = None,
-  name_codespace = None,
-  description = None,
-  class_name = None,
-  constraint_type = None,
-  sim_name = None,
-  sim_description = None,
-  sim_reference = None,
-  aggregation_type = None,
-  temp_aggregation = None,
-  strval = None,
-  booleanval = None,
-  intval = None,
-  realval = None,
-  unit = None,
-  dateval = None,
-  urival = None,
-  geomval = None,
-  time_series_id = None,
-  cityobject_id = None,
-  scenario_id = None
-  ):
+    id = None,
+    type = None,
+    name = None,
+    name_codespace = None,
+    description = None,
+    class_name = None,
+    constraint_type = None,
+    sim_name = None,
+    sim_description = None,
+    sim_reference = None,
+    aggregation_type = None,
+    temp_aggregation = None,
+    strval = None,
+    booleanval = None,
+    intval = None,
+    realval = None,
+    unit = None,
+    dateval = None,
+    urival = None,
+    geomval = None,
+    time_series_id = None,
+    cityobject_id = None,
+    scenario_id = None
+    ):
     '''
     Define function call to insert scenario parameter.
     '''
@@ -94,6 +95,7 @@ def insert_scenario_parameter(
         time_series_id, # integer, default: NULL::integer
         cityobject_id, # integer, default: NULL::integer
         scenario_id # integer, default: NULL::integer
+        )
 
 
 def insert_regular_time_series(
@@ -103,13 +105,12 @@ def insert_regular_time_series(
     name = None,
     name_codespace = None,
     description = None,
-    acquisition_method,
-    interpolation_type,
+    acquisition_method = 'Unknown',
+    interpolation_type = 'Continuous',
     quality_description = None,
     source = None,
     values_array = None,
     values_unit = None,
-    array_length = None,
     temporal_extent_begin = None,
     temporal_extent_end = None,
     time_interval = None,
@@ -128,7 +129,7 @@ def insert_regular_time_series(
 
     return func.citydb_view.scn2_insert_regular_time_series(
         id, # integer, default: NULL::integer
-        gmlid, default: NULL::character varying
+        gmlid, # default: NULL::character varying
         gmlid_codespace, # varchar, default: NULL::character varying
         name, # varchar, default: NULL::character varying
         name_codespace, # varchar, default: NULL::character varying
@@ -139,7 +140,7 @@ def insert_regular_time_series(
         source, # varchar, default: NULL::character varying
         values_array, # numeric[], default: NULL::numeric[]
         values_unit, # varchar, default: NULL::character varying
-        array_length, # integer, default: NULL::integer
+        len( values_array ), # integer, default: NULL::integer
         temporal_extent_begin, # timestamp with time zone, default: NULL::timestamp with time zone
         temporal_extent_end, # timestamp with time zone, default: NULL::timestamp with time zone
         time_interval, # numeric, default: NULL::numeric
