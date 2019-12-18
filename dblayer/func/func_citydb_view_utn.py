@@ -237,15 +237,15 @@ def insert_ntw_feat_distrib_elem_cable(
     Define function call to insert electrical cable into the database.
     '''
     return func.citydb_view.utn9_insert_ntw_feat_distrib_elem_cable(
-        id, # integer, default:: NULL::integer
-        gmlid, # character varying, default:: NULL::character varying
-        gmlid_codespace, # character varying, default:: NULL::character varying
-        name, # character varying, default:: NULL::character varying
-        name_codespace, # character varying, default:: NULL::character varying
-        description, # character varying, default:: NULL::character varying
-        envelope, # geometry, default:: NULL::geometry
-        creation_date, # timestamp with time zone, default:: NULL::timestamp with time zone
-        termination_date, # timestamp with time zone, default:: NULL::timestamp with time zone
+        id, # integer, default: NULL::integer
+        gmlid, # character varying, default: NULL::character varying
+        gmlid_codespace, # character varying, default: NULL::character varying
+        name, # character varying, default: NULL::character varying
+        name_codespace, # character varying, default: NULL::character varying
+        description, # character varying, default: NULL::character varying
+        envelope, # geometry, default: NULL::geometry
+        creation_date, # timestamp with time zone, default: NULL::timestamp with time zone
+        termination_date, # timestamp with time zone, default: NULL::timestamp with time zone
         relative_to_terrain, # character varying, default: NULL::character varying
         relative_to_water, # character varying, default: NULL::character varying
         last_modification_date, # timestamp with time zone, default: NULL::timestamp with time zone

@@ -38,36 +38,36 @@ def insert_boiler(
     Define function call to insert boiler into the database.
     """
     return func.citydb_view.nrg8_insert_boiler(
-        id, # integer, default:: NULL::integer
-        gmlid, # character varying, default:: NULL::character varying
-        gmlid_codespace, # character varying, default:: NULL::character varying
-        name, # character varying, default:: NULL::character varying
-        name_codespace, # character varying, default:: NULL::character varying
-        description, # character varying, default:: NULL::character varying
-        envelope, # geometry, default:: NULL::geometry
-        creation_date, # timestamp with time zone, default:: NULL::timestamp with time zone
-        termination_date, # timestamp with time zone, default:: NULL::timestamp with time zone
-        relative_to_terrain, # character varying, default:: NULL::character varying
-        relative_to_water, # character varying, default:: NULL::character varying
-        last_modification_date, # timestamp with time zone, default:: NULL::timestamp with time zone
-        updating_person, # character varying, default:: NULL::character varying
-        reason_for_update, # character varying, default:: NULL::character varying
-        lineage, # character varying, default:: NULL::character varying
-        model, # character varying, default:: NULL::character varying
-        nbr, # integer, default:: NULL::integer
-        year_of_manufacture, # integer, default:: NULL::integer
-        inst_nom_pwr, # numeric, default:: NULL::numeric
-        inst_nom_pwr_unit, # character varying, default:: NULL::character varying
-        nom_effcy, # numeric, default:: NULL::numeric
-        effcy_indicator, # character varying, default:: NULL::character varying
-        start_of_life, # date, default:: NULL::date
-        life_expect_value, # numeric, default:: NULL::numeric
-        life_expect_value_unit, # character varying, default:: NULL::character varying
-        main_maint_interval, # numeric, default:: NULL::numeric
-        main_maint_interval_unit, # character varying, default:: NULL::character varying
-        inst_in_ctyobj_id, # integer, default:: NULL::integer
-        cityobject_id, # integer, default:: NULL::integer
-        condensation # numeric, default:: NULL::numeric
+        id, # integer, default: NULL::integer
+        gmlid, # character varying, default: NULL::character varying
+        gmlid_codespace, # character varying, default: NULL::character varying
+        name, # character varying, default: NULL::character varying
+        name_codespace, # character varying, default: NULL::character varying
+        description, # character varying, default: NULL::character varying
+        envelope, # geometry, default: NULL::geometry
+        creation_date, # timestamp with time zone, default: NULL::timestamp with time zone
+        termination_date, # timestamp with time zone, default: NULL::timestamp with time zone
+        relative_to_terrain, # character varying, default: NULL::character varying
+        relative_to_water, # character varying, default: NULL::character varying
+        last_modification_date, # timestamp with time zone, default: NULL::timestamp with time zone
+        updating_person, # character varying, default: NULL::character varying
+        reason_for_update, # character varying, default: NULL::character varying
+        lineage, # character varying, default: NULL::character varying
+        model, # character varying, default: NULL::character varying
+        nbr, # integer, default: NULL::integer
+        year_of_manufacture, # integer, default: NULL::integer
+        inst_nom_pwr, # numeric, default: NULL::numeric
+        inst_nom_pwr_unit, # character varying, default: NULL::character varying
+        nom_effcy, # numeric, default: NULL::numeric
+        effcy_indicator, # character varying, default: NULL::character varying
+        start_of_life, # date, default: NULL::date
+        life_expect_value, # numeric, default: NULL::numeric
+        life_expect_value_unit, # character varying, default: NULL::character varying
+        main_maint_interval, # numeric, default: NULL::numeric
+        main_maint_interval_unit, # character varying, default: NULL::character varying
+        inst_in_ctyobj_id, # integer, default: NULL::integer
+        cityobject_id, # integer, default: NULL::integer
+        condensation # numeric, default: NULL::numeric
         )
 
 
@@ -128,58 +128,58 @@ def insert_building(
     Define function call to insert building into the database.
     """
     return func.citydb_view.nrg8_insert_building(
-        id, # integer, default:: NULL::integer,
-        gmlid, # character varying, default:: NULL::character varying
-        gmlid_codespace, # character varying, default:: NULL::character varying
-        name, # character varying, default:: NULL::character varying
-        name_codespace, # character varying, default:: NULL::character varying
-        description, # character varying, default:: NULL::character varying
-        envelope, # geometry, default:: NULL::geometry
-        creation_date, # timestamp with time zone, default:: NULL::timestamp with time zone
-        termination_date, # timestamp with time zone, default:: NULL::timestamp with time zone
-        relative_to_terrain, # character varying, default:: NULL::character varying
-        relative_to_water, # character varying, default:: NULL::character varying
-        last_modification_date, # timestamp with time zone, default:: NULL::timestamp with time zone
-        updating_person, # character varying, default:: NULL::character varying
-        reason_for_update, # character varying, default:: NULL::character varying
-        lineage, # character varying, default:: NULL::character varying
-        building_parent_id, # integer, default:: NULL::integer
-        building_root_id, # integer, default:: NULL::integer
-        class_name, # character varying, default:: NULL::character varying
-        class_codespace, # character varying, default:: NULL::character varying
-        function, # character varying, default:: NULL::character varying
-        function_codespace, # character varying, default:: NULL::character varying
-        usage, # character varying, default:: NULL::character varying
-        usage_codespace, # character varying, default:: NULL::character varying
-        year_of_construction, # date, default:: NULL::date
-        year_of_demolition, # date, default:: NULL::date
-        roof_type, # character varying, default:: NULL::character varying
-        roof_type_codespace, # character varying, default:: NULL::character varying
-        measured_height, # double precision, default:: NULL::double precision
-        measured_height_unit, # character varying, default:: NULL::character varying
-        storeys_above_ground, # numeric, default:: NULL::numeric
-        storeys_below_ground, # numeric, default:: NULL::numeric
-        storey_heights_above_ground, # character varying, default:: NULL::character varying
-        storey_heights_ag_unit, # character varying, default:: NULL::character varying
-        storey_heights_below_ground, # character varying, default:: NULL::character varying
-        storey_heights_bg_unit, # character varying, default:: NULL::character varying
-        lod1_terrain_intersection, # geometry, default:: NULL::geometry
-        lod2_terrain_intersection, # geometry, default:: NULL::geometry
-        lod3_terrain_intersection, # geometry, default:: NULL::geometry
-        lod4_terrain_intersection, # geometry, default:: NULL::geometry
-        lod2_multi_curve, # geometry, default:: NULL::geometry
-        lod3_multi_curve, # geometry, default:: NULL::geometry
-        lod4_multi_curve, # geometry, default:: NULL::geometry
-        lod0_footprint_id, # integer, default:: NULL::integer
-        lod0_roofprint_id, # integer, default:: NULL::integer
-        lod1_multi_surface_id, # integer, default:: NULL::integer
-        lod2_multi_surface_id, # integer, default:: NULL::integer
-        lod3_multi_surface_id, # integer, default:: NULL::integer
-        lod4_multi_surface_id, # integer, default:: NULL::integer
-        lod1_solid_id, # integer, default:: NULL::integer
-        lod2_solid_id, # integer, default:: NULL::integer
-        lod3_solid_id, # integer, default:: NULL::integer
-        lod4_solid_id # integer, default:: NULL::integer
+        id, # integer, default: NULL::integer,
+        gmlid, # character varying, default: NULL::character varying
+        gmlid_codespace, # character varying, default: NULL::character varying
+        name, # character varying, default: NULL::character varying
+        name_codespace, # character varying, default: NULL::character varying
+        description, # character varying, default: NULL::character varying
+        envelope, # geometry, default: NULL::geometry
+        creation_date, # timestamp with time zone, default: NULL::timestamp with time zone
+        termination_date, # timestamp with time zone, default: NULL::timestamp with time zone
+        relative_to_terrain, # character varying, default: NULL::character varying
+        relative_to_water, # character varying, default: NULL::character varying
+        last_modification_date, # timestamp with time zone, default: NULL::timestamp with time zone
+        updating_person, # character varying, default: NULL::character varying
+        reason_for_update, # character varying, default: NULL::character varying
+        lineage, # character varying, default: NULL::character varying
+        building_parent_id, # integer, default: NULL::integer
+        building_root_id, # integer, default: NULL::integer
+        class_name, # character varying, default: NULL::character varying
+        class_codespace, # character varying, default: NULL::character varying
+        function, # character varying, default: NULL::character varying
+        function_codespace, # character varying, default: NULL::character varying
+        usage, # character varying, default: NULL::character varying
+        usage_codespace, # character varying, default: NULL::character varying
+        year_of_construction, # date, default: NULL::date
+        year_of_demolition, # date, default: NULL::date
+        roof_type, # character varying, default: NULL::character varying
+        roof_type_codespace, # character varying, default: NULL::character varying
+        measured_height, # double precision, default: NULL::double precision
+        measured_height_unit, # character varying, default: NULL::character varying
+        storeys_above_ground, # numeric, default: NULL::numeric
+        storeys_below_ground, # numeric, default: NULL::numeric
+        storey_heights_above_ground, # character varying, default: NULL::character varying
+        storey_heights_ag_unit, # character varying, default: NULL::character varying
+        storey_heights_below_ground, # character varying, default: NULL::character varying
+        storey_heights_bg_unit, # character varying, default: NULL::character varying
+        lod1_terrain_intersection, # geometry, default: NULL::geometry
+        lod2_terrain_intersection, # geometry, default: NULL::geometry
+        lod3_terrain_intersection, # geometry, default: NULL::geometry
+        lod4_terrain_intersection, # geometry, default: NULL::geometry
+        lod2_multi_curve, # geometry, default: NULL::geometry
+        lod3_multi_curve, # geometry, default: NULL::geometry
+        lod4_multi_curve, # geometry, default: NULL::geometry
+        lod0_footprint_id, # integer, default: NULL::integer
+        lod0_roofprint_id, # integer, default: NULL::integer
+        lod1_multi_surface_id, # integer, default: NULL::integer
+        lod2_multi_surface_id, # integer, default: NULL::integer
+        lod3_multi_surface_id, # integer, default: NULL::integer
+        lod4_multi_surface_id, # integer, default: NULL::integer
+        lod1_solid_id, # integer, default: NULL::integer
+        lod2_solid_id, # integer, default: NULL::integer
+        lod3_solid_id, # integer, default: NULL::integer
+        lod4_solid_id # integer, default: NULL::integer
         )
 
 
@@ -200,17 +200,17 @@ def insert_energy_demand(
     Define function call to insert energy demand into the database.
     """
     return func.citydb_view.nrg8_insert_energy_demand(
-        id, # integer, default:: NULL::integer
-        gmlid, # character varying, default:: NULL::character varying
-        gmlid_codespace, # character varying, default:: NULL::character varying
-        name, # character varying, default:: NULL::character varying
-        name_codespace, # character varying, default:: NULL::character varying
-        description, # text, default:: NULL::text
-        end_use, # character varying, default:: NULL::character varying
-        max_load, # numeric, default:: NULL::numeric
-        max_load_unit, # character varying, default:: NULL::character varying
-        time_series_id, # integer, default:: NULL::integer
-        cityobject_id # integer, default:: NULL::integer
+        id, # integer, default: NULL::integer
+        gmlid, # character varying, default: NULL::character varying
+        gmlid_codespace, # character varying, default: NULL::character varying
+        name, # character varying, default: NULL::character varying
+        name_codespace, # character varying, default: NULL::character varying
+        description, # text, default: NULL::text
+        end_use, # character varying, default: NULL::character varying
+        max_load, # numeric, default: NULL::numeric
+        max_load_unit, # character varying, default: NULL::character varying
+        time_series_id, # integer, default: NULL::integer
+        cityobject_id # integer, default: NULL::integer
         )
 
 
@@ -254,40 +254,40 @@ def insert_heat_pump(
     Define function call to insert heat pump into the database.
     """
     return func.citydb_view.nrg8_insert_heat_pump(
-        id, # integer,, default::: NULL::integer
-        gmlid, # character varying,, default::: NULL::character varying
-        gmlid_codespace, # character varying,, default::: NULL::character varying
-        name, # character varying,, default::: NULL::character varying
-        name_codespace, # character varying,, default::: NULL::character varying
-        description, # character varying,, default::: NULL::character varying
-        envelope, # geometry,, default::: NULL::geometry
-        creation_date, # timestamp with time zone,, default::: NULL::timestamp with time zone
-        termination_date, # timestamp with time zone,, default::: NULL::timestamp with time zone
-        relative_to_terrain, # character varying,, default::: NULL::character varying
-        relative_to_water, # character varying,, default::: NULL::character varying
-        last_modification_date, # timestamp with time zone,, default::: NULL::timestamp with time zone
-        updating_person, # character varying,, default::: NULL::character varying
-        reason_for_update, # character varying,, default::: NULL::character varying
-        lineage, # character varying,, default::: NULL::character varying
-        model, # character varying,, default::: NULL::character varying
-        nbr, # integer,, default::: NULL::integer
-        year_of_manufacture, # integer,, default::: NULL::integer
-        inst_nom_pwr, # numeric,, default::: NULL::numeric
-        inst_nom_pwr_unit, # character varying,, default::: NULL::character varying
-        nom_effcy, # numeric,, default::: NULL::numeric
-        effcy_indicator, # character varying,, default::: NULL::character varying
-        start_of_life, # date,, default::: NULL::date
-        life_expect_value, # numeric,, default::: NULL::numeric
-        life_expect_value_unit, # character varying,, default::: NULL::character varying
-        main_maint_interval, # numeric,, default::: NULL::numeric
-        main_maint_interval_unit, # character varying,, default::: NULL::character varying
-        inst_in_ctyobj_id, # integer,, default::: NULL::integer
-        cityobject_id, # integer,, default::: NULL::integer
-        heat_source, # character varying,, default::: NULL::character varying
-        cop_source_temp, # numeric,, default::: NULL::numeric
-        cop_source_temp_unit, # character varying,, default::: NULL::character varying
-        cop_oper_temp, # numeric,, default::: NULL::numeric
-        cop_oper_temp_unit, # character varying,, default::: NULL::character varying
+        id, # integer,, default:: NULL::integer
+        gmlid, # character varying,, default:: NULL::character varying
+        gmlid_codespace, # character varying,, default:: NULL::character varying
+        name, # character varying,, default:: NULL::character varying
+        name_codespace, # character varying,, default:: NULL::character varying
+        description, # character varying,, default:: NULL::character varying
+        envelope, # geometry,, default:: NULL::geometry
+        creation_date, # timestamp with time zone,, default:: NULL::timestamp with time zone
+        termination_date, # timestamp with time zone,, default:: NULL::timestamp with time zone
+        relative_to_terrain, # character varying,, default:: NULL::character varying
+        relative_to_water, # character varying,, default:: NULL::character varying
+        last_modification_date, # timestamp with time zone,, default:: NULL::timestamp with time zone
+        updating_person, # character varying,, default:: NULL::character varying
+        reason_for_update, # character varying,, default:: NULL::character varying
+        lineage, # character varying,, default:: NULL::character varying
+        model, # character varying,, default:: NULL::character varying
+        nbr, # integer,, default:: NULL::integer
+        year_of_manufacture, # integer,, default:: NULL::integer
+        inst_nom_pwr, # numeric,, default:: NULL::numeric
+        inst_nom_pwr_unit, # character varying,, default:: NULL::character varying
+        nom_effcy, # numeric,, default:: NULL::numeric
+        effcy_indicator, # character varying,, default:: NULL::character varying
+        start_of_life, # date,, default:: NULL::date
+        life_expect_value, # numeric,, default:: NULL::numeric
+        life_expect_value_unit, # character varying,, default:: NULL::character varying
+        main_maint_interval, # numeric,, default:: NULL::numeric
+        main_maint_interval_unit, # character varying,, default:: NULL::character varying
+        inst_in_ctyobj_id, # integer,, default:: NULL::integer
+        cityobject_id, # integer,, default:: NULL::integer
+        heat_source, # character varying,, default:: NULL::character varying
+        cop_source_temp, # numeric,, default:: NULL::numeric
+        cop_source_temp_unit, # character varying,, default:: NULL::character varying
+        cop_oper_temp, # numeric,, default:: NULL::numeric
+        cop_oper_temp_unit, # character varying,, default:: NULL::character varying
         )
 
 
@@ -322,23 +322,23 @@ def insert_regular_time_series(
         raise RuntimeError( 'invalid interpolation type' )
 
     return func.citydb_view.nrg8_insert_regular_time_series(
-        id, # integer, default:: NULL::integer
-        gmlid, # character varying, default:: NULL::character varying
-        gmlid_codespace, # character varying, default:: NULL::character varying
-        name, # character varying, default:: NULL::character varying
-        name_codespace, # character varying, default:: NULL::character varying
-        description, # text, default:: NULL::text
-        acquisition_method, # character varying, default:: NULL::character varying
-        interpolation_type, # character varying, default:: NULL::character varying
-        quality_description, # text, default:: NULL::text
-        source, # character varying, default:: NULL::character varying
-        values_array, # numeric[], default:: NULL::numeric[]
-        values_unit, # character varying, default:: NULL::character varying
-        len( values_array ), # integer, default:: NULL::integer
-        temporal_extent_begin, # timestamp with time zone, default:: NULL::timestamp with time zone
-        temporal_extent_end, # timestamp with time zone, default:: NULL::timestamp with time zone
-        time_interval, # numeric, default:: NULL::numeric
-        time_interval_unit # character varying, default:: NULL::character varying
+        id, # integer, default: NULL::integer
+        gmlid, # character varying, default: NULL::character varying
+        gmlid_codespace, # character varying, default: NULL::character varying
+        name, # character varying, default: NULL::character varying
+        name_codespace, # character varying, default: NULL::character varying
+        description, # text, default: NULL::text
+        acquisition_method, # character varying, default: NULL::character varying
+        interpolation_type, # character varying, default: NULL::character varying
+        quality_description, # text, default: NULL::text
+        source, # character varying, default: NULL::character varying
+        values_array, # numeric[], default: NULL::numeric[]
+        values_unit, # character varying, default: NULL::character varying
+        len( values_array ), # integer, default: NULL::integer
+        temporal_extent_begin, # timestamp with time zone, default: NULL::timestamp with time zone
+        temporal_extent_end, # timestamp with time zone, default: NULL::timestamp with time zone
+        time_interval, # numeric, default: NULL::numeric
+        time_interval_unit # character varying, default: NULL::character varying
         )
 
 
@@ -373,30 +373,30 @@ def insert_electrical_appliances(
     Define function call to insert electrical appliance into the database.
     '''
     return func.citydb_view.nrg8_insert_electrical_appliances(
-        id, # integer, default:: NULL::integer
-        gmlid, # character varying, default:: NULL::character varying
-        gmlid_codespace, # character varying, default:: NULL::character varying
-        name, # character varying, default:: NULL::character varying
-        name_codespace, # character varying, default:: NULL::character varying
-        description, # character varying, default:: NULL::character varying
-        envelope, # geometry, default:: NULL::geometry
-        creation_date, # timestamp with time zone, default:: NULL::timestamp with time zone
-        termination_date, # timestamp with time zone, default:: NULL::timestamp with time zone
-        relative_to_terrain, # character varying, default:: NULL::character varying
-        relative_to_water, # character varying, default:: NULL::character varying
-        last_modification_date, # timestamp with time zone, default:: NULL::timestamp with time zone
-        updating_person, # character varying, default:: NULL::character varying
-        reason_for_update, # character varying, default:: NULL::character varying
-        lineage, # character varying, default:: NULL::character varying
-        heat_diss_tot_value, # numeric, default:: NULL::numeric
-        heat_diss_tot_value_unit, # character varying, default:: NULL::character varying
-        heat_diss_conv, # numeric, default:: NULL::numeric
-        heat_diss_lat, # numeric, default:: NULL::numeric
-        heat_diss_rad, # numeric, default:: NULL::numeric
-        electr_pwr, # numeric, default:: NULL::numeric
-        electr_pwr_unit, # character varying, default:: NULL::character varying
-        oper_sched_id, # integer, default:: NULL::integer
-        usage_zone_id, # integer, default:: NULL::integer
+        id, # integer, default: NULL::integer
+        gmlid, # character varying, default: NULL::character varying
+        gmlid_codespace, # character varying, default: NULL::character varying
+        name, # character varying, default: NULL::character varying
+        name_codespace, # character varying, default: NULL::character varying
+        description, # character varying, default: NULL::character varying
+        envelope, # geometry, default: NULL::geometry
+        creation_date, # timestamp with time zone, default: NULL::timestamp with time zone
+        termination_date, # timestamp with time zone, default: NULL::timestamp with time zone
+        relative_to_terrain, # character varying, default: NULL::character varying
+        relative_to_water, # character varying, default: NULL::character varying
+        last_modification_date, # timestamp with time zone, default: NULL::timestamp with time zone
+        updating_person, # character varying, default: NULL::character varying
+        reason_for_update, # character varying, default: NULL::character varying
+        lineage, # character varying, default: NULL::character varying
+        heat_diss_tot_value, # numeric, default: NULL::numeric
+        heat_diss_tot_value_unit, # character varying, default: NULL::character varying
+        heat_diss_conv, # numeric, default: NULL::numeric
+        heat_diss_lat, # numeric, default: NULL::numeric
+        heat_diss_rad, # numeric, default: NULL::numeric
+        electr_pwr, # numeric, default: NULL::numeric
+        electr_pwr_unit, # character varying, default: NULL::character varying
+        oper_sched_id, # integer, default: NULL::integer
+        usage_zone_id, # integer, default: NULL::integer
         building_unit_id # integer, NULL::integer
         )
 
