@@ -18,7 +18,7 @@ setup(
         'pygeoif>=0.7',
         'sqlalchemy>=1.3.3',
         'thermo>=0.1.39',
-        'zerobnl @ git+https://github.com/IntegrCiTy/zerobnl@v1.0',
+        'zerobnl @ git+https://github.com/IntegrCiTy/zerobnl@v1.1',
         'pandangas @ git+https://github.com/IntegrCiTy/PandaNGas.git@4202f42abd8fd2b1b17ae05fefdc042b092887f7',
         'pandathermal @ git+https://github.com/IntegrCiTy/PandaThermal.git@6b08ca6c600f742624837b898b5a74a69ebea682',
     ],
