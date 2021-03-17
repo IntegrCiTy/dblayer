@@ -16,7 +16,7 @@ setup(
         'pandas>=0.25.3',
         'psycopg2-binary>=2.8.2',
         'pygeoif>=0.7',
-        'sqlalchemy>=1.3.3',
+        'sqlalchemy>=1.3.3,<1.4',
         'thermo>=0.1.39',
         'zerobnl @ git+https://github.com/IntegrCiTy/zerobnl@v1.1',
         'pandangas @ git+https://github.com/IntegrCiTy/PandaNGas.git@dd16c9f1a753de03207bbc7d7e9a41a3fba99656',
