@@ -19,7 +19,7 @@ Examples for using package DBLayer can be found in subdirectory `examples`.
 
 ## Installation and prerequisites
 
-1. The basic functionality of the package (including access to PostgreSQL databases and the IntegrCiTy co-simulation platform (Python package zerobnl)](https://github.com/IntegrCiTy/zerobnl)) can be installed from the command line:
+1. The basic functionality of the package (including access to PostgreSQL databases and the IntegrCiTy co-simulation platform [ZerOBNL](https://github.com/IntegrCiTy/zerobnl)) can be installed from the command line:
 ```
 pip install -e git+https://github.com/IntegrCiTy/dblayer#egg=dblayer
 ```
